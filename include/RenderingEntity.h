@@ -13,7 +13,7 @@ namespace Medusa
 	class RenderingEntity
 	{
 		public:
-			RenderingEntity(const shared_ptr<Mesh>& mesh, ITransform* transform);
+			RenderingEntity(const shared_ptr<Mesh>& mesh, const shared_ptr<ITransform>& transform);
 			
 			~RenderingEntity();
 			
@@ -21,7 +21,7 @@ namespace Medusa
 			
 			void draw();
 			
-			Mat<4> getModelMatrix();
+			bool update(const Mat<4>& projectionMatrix);
 			
 			template<class T>
 			void setUniform(const std::string& name, const T& value)
@@ -29,11 +29,13 @@ namespace Medusa
 				material->setUniform(name, value);
 			}
 			
+			void setTexture(const Texture& texture);
+			
 			std::shared_ptr<Material> getMaterial() const;
 
 		private:
 			shared_ptr<Mesh> m_mesh;
-			shared_ptr<ITransform> m_transform;
+			weak_ptr<ITransform> m_transform;
 			shared_ptr<Material> material;
 			static int allid;
 			int id;

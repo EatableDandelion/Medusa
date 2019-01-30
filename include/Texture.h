@@ -84,7 +84,7 @@ namespace Medusa
 		
 			~TextureData();
 			
-			void read();
+			void read(const int& location) const;
 		
 		private:
 			unsigned int m_id;
@@ -96,11 +96,13 @@ namespace Medusa
 		public:
 			TextureManager(const std::string& folderLocation);
 			
+			TextureManager(const TextureManager& textureManager);
+			
 			~TextureManager();
 			
 			Texture getTexture(const std::string& fileName);
 			
-			void read(const std::size_t id);
+			void read(const std::size_t id, const int& location) const;
 			
 		private:
 			std::map<std::size_t, std::unique_ptr<TextureData>> m_textures;
@@ -112,12 +114,12 @@ namespace Medusa
 		public:
 			Texture(TextureManager* manager, const std::size_t id);
 			
-			~Texture();
+			Texture(const Texture& texture);
 			
-			void read();
+			void read(const int& location) const;
 			
 		private:
 			std::size_t m_id;
-			TextureManager* m_manager;
+			std::shared_ptr<TextureManager> m_manager;
 	};
 }

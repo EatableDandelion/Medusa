@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <Mesh.h>
 #include <Texture.h>
+#include <variant>
 
 namespace Medusa
 {	
@@ -15,7 +16,7 @@ namespace Medusa
 	using namespace std;
 	
 	struct Uniform;
-	template<class T> struct TypedUniform;
+	struct Material;
 	class Shader;
 	class ShaderData;
 	class ShaderLoader;
@@ -23,98 +24,34 @@ namespace Medusa
 	struct Uniform
 	{
 		public:
-			Uniform();
-			virtual void update(const GLint& location)=0;
+			//Uniform();
+			Uniform(const std::vector<float>& value, const std::string& type);
+			Uniform(const Uniform& uniform);
 			
-		protected:
-			GLint m_location;
-	};
-	
-	template<class T>
-	struct TypedUniform:Uniform
-	{	
-		public:
-			TypedUniform(const string& name, const T& value, const string& GLSLName):m_name(name), m_value(value), m_GLSLName(GLSLName)
-			{}
-			
-			void set(const T& value)
-			{
-				m_value=value;
-			}
-		
-		protected:
-			std::string m_name;
-			T m_value;
-			std::string m_GLSLName;
-	};
-	
-	struct UniformVec2:TypedUniform<Vec<2>>
-	{	
-		UniformVec2(const string& name, const Vec<2>& value);
-		virtual void update(const GLint& location);
-	};
-	
-	struct UniformVec3:TypedUniform<Vec<3>>
-	{	
-		UniformVec3(const string& name, const Vec<3>& value);	
-		virtual void update(const GLint& location);
-	};
-	
-	struct UniformVec4:TypedUniform<Vec<4>>
-	{	
-		UniformVec4(const string& name, const Vec<4>& value);
-		virtual void update(const GLint& location);
-	};
-	
-	struct UniformMat4:TypedUniform<Mat<4>>
-	{		
-		UniformMat4(const string& name, const Mat<4>& value);
-		virtual void update(const GLint& location);
-	};
-	
-	struct UniformFloat:TypedUniform<float>
-	{	
-		UniformFloat(const string& name, const float& value);
-		virtual void update(const GLint& location);
-	};
-	
-	struct UniformTexture:TypedUniform<Texture>
-	{
-		UniformTexture(const string& name, const Texture& value);
-		virtual void update(const GLint& location);
-	};
-	
-	
-	class Material
-	{
-		public:
-			Material();
-			
-			~Material();
-					
-			template<class T>
-			void setUniform(const string& name, const T& value)
-			{ 				
-				size_t id = Circe::getId(name);
-				if(uniforms.find(id) == uniforms.end())
-				{
-					addUniform(name, id, value);
-				}else{
-					dynamic_pointer_cast<TypedUniform<T>>(uniforms[id])->set(value);
-				}				
-			}
-						
-			void uploadUniform(size_t id, const GLint& location) const;
+			void upload(const GLint& location);
+			void set(const std::vector<float>& value);
 			
 		private:
-			unordered_map<size_t, shared_ptr<Uniform>> uniforms;
+			std::vector<float> m_value;
+			std::string m_type;
+	};
+	
+	struct Material
+	{
+		public:
+			void setUniform(const std::string& name, const std::vector<float>& value, const std::string& type);
+		
+			void setUniform(const std::string& name, const float& value);
+			void setUniform(const std::string& name, const Vec<2>& value);
+			void setUniform(const std::string& name, const Mat<4>& value);
 			
-			void addUniform(const string& name, size_t& id, const Vec<2>& vec);
-			void addUniform(const string& name, size_t& id, const Vec<3>& vec);
-			void addUniform(const string& name, size_t& id, const Vec<4>& vec);			
-			void addUniform(const string& name, size_t& id, const Mat<4>& mat);			
-			void addUniform(const string& name, size_t& id, const float& f);
-			void addUniform(const string& name, size_t& id, const Texture& texture);
+			void setTexture(const Texture& texture);
+			
+			void uploadUniform(const std::size_t& index, const GLint& location);
+			
+		private:
+			std::unordered_map<std::size_t, std::unique_ptr<Uniform>> m_uniforms;
+			std::vector<Texture> m_textures;
 	};
 
 	class Shader : public ResourceHandle<Shader, ShaderData>

@@ -19,7 +19,7 @@ namespace Medusa
 			
 			void bind();
 			
-			void render(const Camera& camera, RenderingEntity& entity);
+			bool render(const Camera& camera, RenderingEntity& entity);
 			
 			void unbind();
 

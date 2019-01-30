@@ -25,7 +25,7 @@ namespace Medusa
 			
 			void draw();
 		
-			void addEntity(const std::string& meshName, const std::string& textureName, ITransform* transform);
+			void addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
 			
 			bool shouldCloseWindow() const;
 			
