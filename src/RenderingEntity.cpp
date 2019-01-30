@@ -4,7 +4,7 @@ namespace Medusa
 {	
 	int RenderingEntity::allid=0;
 	
-	RenderingEntity::RenderingEntity(const std::shared_ptr<Mesh>& mesh, ITransform* transform):m_mesh(mesh), m_transform(transform), material(make_shared<Material>()), id(allid++)
+	RenderingEntity::RenderingEntity(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<ITransform>& transform):m_mesh(mesh), m_transform(weak_ptr<ITransform>(transform)), material(make_shared<Material>()), id(allid++)
 	{
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
@@ -23,9 +23,20 @@ namespace Medusa
 		m_mesh->draw();
 	}
 	
-	Mat<4> RenderingEntity::getModelMatrix()
+	bool RenderingEntity::update(const Mat<4>& projectionMatrix)
+	{		
+		if(auto transform = m_transform.lock()){
+			Mat<4> m = transform->getTransformMatrix();
+			setUniform("MVP", projectionMatrix*m);
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	void RenderingEntity::setTexture(const Texture& texture)
 	{
-		return m_transform->getTransformMatrix();
+		material->setTexture(texture);
 	}
 	
 	std::shared_ptr<Material> RenderingEntity::getMaterial() const

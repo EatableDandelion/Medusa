@@ -14,12 +14,12 @@ using namespace std;
 int main(void)
 {
 	
-	Transform<3>* transform1=new Transform<3>();
-	Transform<3>* transform2=new Transform<3>();
+	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
+	shared_ptr<Transform<3>> transform2(make_shared<Transform<3>>());
 	
 	/*CIRCE_INITPROFILER;
 	CIRCE_PROFILEBLOCK;*/
-	CIRCE_INFO("aa");
+	
 
 	RenderingEngine engine;
 	engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
@@ -45,7 +45,4 @@ int main(void)
 			dt = duration_cast<milliseconds>(t1 - t0);
 		}
     }
-	
-	delete transform1;
-	delete transform2;
 }

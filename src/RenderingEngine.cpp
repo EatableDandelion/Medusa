@@ -35,6 +35,7 @@ namespace Medusa
 		
 		for(shared_ptr<RenderingEntity> entity : entities)
 		{
+			//TODO remove entities based on bool result of pass.render(...)
 			pass.render(camera, *entity);
 		}
 		
@@ -44,11 +45,12 @@ namespace Medusa
 		m_window.swapBuffers();
 	}
 	
-	void RenderingEngine::addEntity(const std::string& meshName, const std::string& textureName, ITransform* transform)
+	void RenderingEngine::addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform)
 	{
 		shared_ptr<Mesh> mesh = make_shared<Mesh>(meshResources.getResource(meshName, Medusa::TRIANGLE_RENDERING));
 		shared_ptr<RenderingEntity> entity = make_shared<RenderingEntity>(mesh, transform);
 		//entity->setUniform("diffuse", textureResources.getResource(textureName, Medusa::DIFFUSE));
+		entity->setTexture(textureResources.getTexture(textureName));
 		entities.push_back(entity);
 	}
 	

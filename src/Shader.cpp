@@ -5,112 +5,82 @@
 namespace Medusa
 {
 	//--- Uniform ---//
-	Uniform::Uniform()
+	/*Uniform::Uniform():m_type("")
+	{}*/
+	
+	Uniform::Uniform(const std::vector<float>& value, const std::string& type):m_value(value), m_type(type)
 	{}
 	
-	UniformVec2::UniformVec2(const string& name, const Vec<2>& value):TypedUniform<Vec<2>>(name, value, "vec2")
+	Uniform::Uniform(const Uniform& uniform):m_value(uniform.m_value), m_type(uniform.m_type)
 	{}
 	
-	UniformVec3::UniformVec3(const string& name, const Vec<3>& value):TypedUniform<Vec<3>>(name, value, "vec3")
-	{}
-	
-	UniformVec4::UniformVec4(const string& name, const Vec<4>& value):TypedUniform<Vec<4>>(name, value, "vec4")
-	{}
-	
-	UniformMat4::UniformMat4(const string& name, const Mat<4>& value):TypedUniform<Mat<4>>(name, value, "mat4")
-	{}
-	
-	UniformFloat::UniformFloat(const string& name, const float& value):TypedUniform<float>(name, value, "float")
-	{}
-	
-	UniformTexture::UniformTexture(const string& name, const Texture& value):TypedUniform<Texture>(name, value, "sampler2D")
-	{}
-	
-	void UniformVec2::update(const GLint& location)
+	void Uniform::upload(const GLint& location)//This is ugly but let's settle for that now
 	{
-		glUniform2f(location, (GLfloat)m_value(0), (GLfloat)m_value(1));
+		if(m_type=="vec2"){
+			glUniform2fv(location, 1, &m_value[0]);
+		}else if(m_type=="vec3"){
+			glUniform3fv(location, 1, &m_value[0]);
+		}else if(m_type=="vec4"){
+			glUniform4fv(location, 1, &m_value[0]);
+		}else if(m_type=="mat4"){
+			glUniformMatrix4fv(location, 1, GL_TRUE, &m_value[0]);
+		}else{
+			CIRCE_ERROR(m_type+" not recognized.");
+		}
 	}
 	
-	void UniformVec3::update(const GLint& location)
+	void Uniform::set(const std::vector<float>& value)
 	{
-		glUniform3f(location, (GLfloat)m_value(0), (GLfloat)m_value(1), (GLfloat)m_value(2));
+		m_value = value;
 	}
-	
-	void UniformVec4::update(const GLint& location)
-	{
-		glUniform4f(location, (GLfloat)m_value(0), (GLfloat)m_value(1), (GLfloat)m_value(2), (GLfloat)m_value(3));
-	}
-	
-	void UniformMat4::update(const GLint& location)
-	{
-		glUniformMatrix4fv(location, 1, GL_TRUE, (GLfloat*)(&m_value(0,0)) );
-	}
-	
-	void UniformFloat::update(const GLint& location)
-	{
-		glUniform1f(location, (GLfloat)m_value);
-	}
-	
-	void UniformTexture::update(const GLint& location)
-	{
-		//m_value.activate(location);
-		//m_value.bind();
-		m_value.read();
-	}
-	
 	
 	
 	//--- Material ---//
 	
-	Material::Material():uniforms()
+	void Material::setUniform(const std::string& name, const std::vector<float>& value, const std::string& type)
 	{
-		CIRCE_INFO("Initializing material.");
-	}
-			
-	Material::~Material()
-	{
-		CIRCE_INFO("Destroying material.");
-	}
-	
-	void  Material::uploadUniform(size_t id, const GLint& location) const
-	{
-		if(uniforms.find(id)!=uniforms.end())
-		{	
-			uniforms.at(id)->update(location);
+		std::size_t id = Circe::getId(name);
+		if(m_uniforms.find(id) == m_uniforms.end())
+		{
+			m_uniforms.insert(std::pair<std::size_t, std::unique_ptr<Uniform>>(id,std::make_unique<Uniform>(value, type)));
+		}else{
+			m_uniforms[id]->set(value);
 		}
 	}
 	
-	void Material::addUniform(const string& name, size_t& id, const Vec<2>& vec)
+	void Material::setUniform(const std::string& name, const float& value)
 	{
-		uniforms[id]=make_shared<UniformVec2>(UniformVec2(name, vec));
+		setUniform(name, std::vector<float>({value}), "float");
 	}
 	
-	void Material::addUniform(const string& name, size_t& id, const Vec<3>& vec)
+	void Material::setUniform(const std::string& name, const Vec<2>& value)
 	{
-		uniforms[id]=make_shared<UniformVec3>(UniformVec3(name, vec));
+		setUniform(name, std::vector<float>({value(0), value(1)}), "vec2");
 	}
 	
-	void Material::addUniform(const string& name, size_t& id, const Vec<4>& vec)
+	void Material::setUniform(const std::string& name, const Mat<4>& value)
 	{
-		uniforms[id]=make_shared<UniformVec4>(UniformVec4(name, vec));
+		setUniform(name, std::vector<float>({value(0,0), value(0,1), value(0,2), value(0,3),
+											 value(1,0), value(1,1), value(1,2), value(1,3),
+											 value(2,0), value(2,1), value(2,2), value(2,3),
+											 value(3,0), value(3,1), value(3,2), value(3,3)}), "mat4");
 	}
 	
-	void Material::addUniform(const string& name, size_t& id, const Mat<4>& mat)
+	void Material::setTexture(const Texture& texture)
 	{
-		uniforms[id]=make_shared<UniformMat4>(UniformMat4(name, mat));
+		m_textures.push_back(texture);
 	}
-	
-	void Material::addUniform(const string& name, size_t& id, const float& f)
+
+	void Material::uploadUniform(const std::size_t& index, const GLint& location)
 	{
-		uniforms[id]=make_shared<UniformFloat>(UniformFloat(name, f));
+		for(auto const& texture:m_textures){
+			texture.read(location);
+		}
+		if(m_uniforms.find(index) != m_uniforms.end())
+		{
+			m_uniforms[index]->upload(location);
+		}
 	}
-	
-	void Material::addUniform(const string& name, size_t& id, const Texture& texture)
-	{
-		uniforms[id]=make_shared<UniformTexture>(UniformTexture(name, texture));
-	}
-	
-	
 	
 	//--- Shader ---//
 	

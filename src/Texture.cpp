@@ -147,7 +147,7 @@ namespace Medusa
 		}
 		else
 		{
-			CIRCE_ERROR("Failed to load "+fileName+" texture.");
+			CIRCE_ERROR("Failed to load "+fileName+" texture.  "+folderLocation);
 		}
 		
 		stbi_image_free(data);
@@ -164,9 +164,9 @@ namespace Medusa
 	}
 	
 	
-	void TextureData::read()
+	void TextureData::read(const int& location) const
 	{
-		//glUniform1i(location, textureType);
+		glUniform1i(location, GL_TEXTURE0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_id);		
 	}
@@ -175,6 +175,9 @@ namespace Medusa
 	TextureManager::TextureManager(const std::string& folderLocation):m_folderLocation(folderLocation)
 	{}
 	
+	TextureManager::TextureManager(const TextureManager& textureManager):m_folderLocation(textureManager.m_folderLocation)
+	{}
+
 	TextureManager::~TextureManager()
 	{
 		m_textures.clear();
@@ -190,9 +193,9 @@ namespace Medusa
 		return Texture(this, id);
 	}
 	
-	void TextureManager::read(const std::size_t id)
+	void TextureManager::read(const std::size_t id, const int& location) const
 	{
-		m_textures[id]->read();
+		m_textures.find(id)->second->read(location);
 	}
 	
 	
@@ -200,13 +203,11 @@ namespace Medusa
 	Texture::Texture(TextureManager* manager, const std::size_t id):m_manager(manager), m_id(id)
 	{}
 	
-	Texture::~Texture()
-	{
-		delete m_manager;
-	}
+	Texture::Texture(const Texture& texture):m_manager(texture.m_manager), m_id(texture.m_id)
+	{}
 	
-	void Texture::read()
+	void Texture::read(const int& location) const
 	{
-		m_manager->read(m_id);
+		m_manager->read(m_id, location);
 	}	
 }

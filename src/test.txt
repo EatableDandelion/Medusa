@@ -1,0 +1,9 @@
+cls
+mingw32-make.exe clean
+mingw32-make.exe[1]: Entering directory 'C:/Users/Marc/Documents/CGeekOut/Medusa/src'
+del obj\\*.o *.exe
+mingw32-make.exe[1]: Leaving directory 'C:/Users/Marc/Documents/CGeekOut/Medusa/src'
+mingw32-make.exe
+mingw32-make.exe[1]: Entering directory 'C:/Users/Marc/Documents/CGeekOut/Medusa/src'
+g++ -c -std=c++17 -fpic -o obj/RenderingEngine.o RenderingEngine.cpp -I../include
+mingw32-make.exe[1]: Leaving directory 'C:/Users/Marc/Documents/CGeekOut/Medusa/src'
