@@ -171,6 +171,23 @@ namespace Medusa
 		glBindTexture(GL_TEXTURE_2D, m_id);		
 	}
 	
+	
+	/**		class Texture		**/
+	Texture::Texture(TextureManager* manager):m_manager(manager)
+	{}
+	
+	Texture::Texture(const Texture& texture):m_manager(texture.m_manager), m_ids(texture.m_ids)
+	{}
+	
+	void Texture::read(const int& location) const
+	{
+		for(const std::size_t id : m_ids)
+		{
+			m_manager->read(id, location);
+		}
+		
+	}
+	
 	/**		class TextureManager		**/
 	TextureManager::TextureManager(const std::string& folderLocation):m_folderLocation(folderLocation)
 	{}
@@ -183,14 +200,14 @@ namespace Medusa
 		m_textures.clear();
 	}
 	
-	Texture TextureManager::getTexture(const std::string& fileName)
+	void TextureManager::addImageToTexture(Texture& texture, const std::string& fileName)
 	{
 		size_t id = Circe::getId(fileName);
 		if(m_textures.find(id)==m_textures.end())
 		{
 			m_textures[id] = std::make_unique<TextureData>(m_folderLocation, fileName);
 		}
-		return Texture(this, id);
+		texture.m_ids.push_back(id);
 	}
 	
 	void TextureManager::read(const std::size_t id, const int& location) const
@@ -198,16 +215,53 @@ namespace Medusa
 		m_textures.find(id)->second->read(location);
 	}
 	
+	/**		class FrameBuffer		**/
 	
-	/**		class Texture		**/
-	Texture::Texture(TextureManager* manager, const std::size_t id):m_manager(manager), m_id(id)
-	{}
-	
-	Texture::Texture(const Texture& texture):m_manager(texture.m_manager), m_id(texture.m_id)
-	{}
-	
-	void Texture::read(const int& location) const
+	FrameBuffer::FrameBuffer(const int& width, const int& height)
 	{
-		m_manager->read(m_id, location);
-	}	
+		glGenFramebuffers(1, &fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		
+		//Setting up the color target
+		glGenTextures(1, &colorTargetId);	
+		glBindTexture(GL_TEXTURE_2D, colorTargetId);	
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);	
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTargetId, 0);
+		
+		//Setting up the render buffer object
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			CIRCE_ERROR("Could not create render buffer.");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		CIRCE_INFO("FrameBuffer initialized.")
+	}
+	
+	FrameBuffer::~FrameBuffer()
+	{
+		glDeleteFramebuffers(1, &fbo);
+	}
+	
+	void FrameBuffer::write()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	}
+	
+	void FrameBuffer::read()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, colorTargetId);
+	}
+	
 }

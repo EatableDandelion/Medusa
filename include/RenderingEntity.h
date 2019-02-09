@@ -19,7 +19,7 @@ namespace Medusa
 			
 			void render(Shader& renderingPass, Camera& camera);
 			
-			void draw();
+			void draw(const int& culling);
 			
 			bool update(const Mat<4>& projectionMatrix);
 			
@@ -38,7 +38,6 @@ namespace Medusa
 			weak_ptr<ITransform> m_transform;
 			shared_ptr<Material> material;
 			static int allid;
-			int id;
-			
+			int id;			
 	};
 }

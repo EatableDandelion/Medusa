@@ -16,11 +16,12 @@ namespace Medusa
 	
 	void RenderingEntity::render(Shader& renderingPass, Camera& camera)
 	{
+		
 	}
 	
-	void RenderingEntity::draw()
+	void RenderingEntity::draw(const int& culling)
 	{
-		m_mesh->draw();
+		m_mesh->draw(culling);
 	}
 	
 	bool RenderingEntity::update(const Mat<4>& projectionMatrix)

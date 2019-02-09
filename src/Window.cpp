@@ -1,22 +1,77 @@
 #include "Window.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <Circe/MathObj.h>
+#include <Circe/Circe.h>
 
 namespace Medusa
 {
 	using namespace Circe;
 	using namespace std;
 
+	Keyboard& IWindow::getKeyboard()
+	{
+		return m_keyboard;
+	}
+	
+	Mouse& IWindow::getMouse()
+	{
+		return m_mouse;
+	}
+	
+	int IWindow::getWidth() const
+	{
+		return width;
+	}
+	
+	int IWindow::getHeight() const
+	{
+		return height;
+	}
 	
 	static void error_callback(int error, const char* description)
 	{
 		fprintf(stderr, "Error: %s\n", description);
 	}
+	
 	static void key_callback(GLFWwindow* glfwWindow, int key, int scancode, int action, int mods)
 	{
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
+
+		GLFWWindow* window = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(glfwWindow));
+		if(window != NULL){
+			if(action == GLFW_PRESS)
+			{
+				window->getKeyboard().onChange(key, 1);
+			}
+			else if(action == GLFW_RELEASE)
+			{
+				window->getKeyboard().onChange(key, 0);
+			}
+		}
+	}
+	
+	static void mouse_button_callback(GLFWwindow* glfwWindow, int button, int action, int mods)
+	{
+		GLFWWindow* window = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(glfwWindow));
+		if(window != NULL){
+			if(action == GLFW_PRESS)
+			{
+				window->getMouse().onPress(button);
+			}
+			else if(action == GLFW_RELEASE)
+			{
+				window->getMouse().onRelease(button);
+			}
+		}
+	}
+	
+	static void cursor_position_callback(GLFWwindow* glfwWindow, double xpos, double ypos)
+	{
+		GLFWWindow* window = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(glfwWindow));
+		if(window != NULL){
+			window->getMouse().onMoved(Circe::Vec2(xpos/window->getWidth(), ypos/window->getHeight()));
+		}
 	}
 	
 	IWindow::IWindow(const int& width, const int& height, const char* title):width(width),height(height),title(title)
@@ -28,7 +83,9 @@ namespace Medusa
 	}
 	
 	GLFWWindow::GLFWWindow(const int& width, const int& height, const char* title):IWindow(width, height, title)
-	{}
+	{
+		init();
+	}
 	
 	int GLFWWindow::init()
 	{
@@ -48,7 +105,14 @@ namespace Medusa
 			return -1;
 		}
 		
+		
+		glfwSetInputMode(glfwWindow, GLFW_STICKY_MOUSE_BUTTONS, 1);
+		glfwSetWindowUserPointer(glfwWindow, this);
 		glfwSetKeyCallback(glfwWindow, key_callback);
+		glfwSetMouseButtonCallback(glfwWindow, mouse_button_callback);
+		glfwSetCursorPosCallback(glfwWindow, cursor_position_callback);
+		
+		
 		glfwMakeContextCurrent(glfwWindow);
 		gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 		glfwSwapInterval(1);
@@ -59,10 +123,10 @@ namespace Medusa
 	void GLFWWindow::update(Camera& camera)
 	{
 		//Update window size if necessary
-		int windowWidth, windowHeight;
-		glfwGetFramebufferSize(glfwWindow, &windowWidth, &windowHeight);
-		glViewport(0, 0, windowWidth, windowHeight);
-		camera.update(windowWidth, windowHeight);
+		
+		glfwGetFramebufferSize(glfwWindow, &width, &height);
+		glViewport(0, 0, width, height);
+		camera.update(width, height);
 		
 		glfwPollEvents();
 	}

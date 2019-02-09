@@ -21,8 +21,12 @@ namespace Medusa{
 	
 	void RenderingPass::bind()
 	{
-		//Attach shader
-		m_shader.bind();		
+		//glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		//glFrontFace(GL_CW);
+		//glCullFace(GL_BACK);
+		m_shader.bind();	
 	}
 	
 	bool RenderingPass::render(const Camera& camera, RenderingEntity& entity)
@@ -33,10 +37,10 @@ namespace Medusa{
 		Mat<4> mvp = p*m;
 		entity.setUniform("MVP", mvp);*/
 		if(entity.update(camera.getProjectionMatrix())){
-			m_shader.update(entity.getMaterial());		
+			m_shader.update(entity.getMaterial());
 			
 			//Draw mesh
-			entity.draw();
+			entity.draw(1);
 			return true;
 		}else{
 			return false;
@@ -45,6 +49,6 @@ namespace Medusa{
 	
 	void RenderingPass::unbind()
 	{
-		
+		glDisable(GL_DEPTH_TEST);
 	}
 }

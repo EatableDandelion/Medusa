@@ -76,6 +76,7 @@ namespace Medusa
 	class TextureData;
 	class TextureManager;
 	class Texture;
+	class FrameBuffer;
 	
 	class TextureData
 	{
@@ -91,6 +92,20 @@ namespace Medusa
 			std::string m_fileName;
 	};
 	
+	class Texture
+	{
+		public:	
+			Texture(const Texture& texture);
+			
+			void read(const int& location) const;
+			
+		private:
+			std::vector<std::size_t> m_ids;
+			std::shared_ptr<TextureManager> m_manager;
+			Texture(TextureManager* manager);
+			friend class TextureManager;
+	};
+	
 	class TextureManager
 	{
 		public:
@@ -100,26 +115,52 @@ namespace Medusa
 			
 			~TextureManager();
 			
-			Texture getTexture(const std::string& fileName);
-			
+			template<typename... FileNames>
+			Texture getTexture(const FileNames... fileNames)
+			{
+				Texture newTexture(this);
+				return loadTexture(newTexture, fileNames...);
+			}
+				
 			void read(const std::size_t id, const int& location) const;
 			
 		private:
 			std::map<std::size_t, std::unique_ptr<TextureData>> m_textures;
 			std::string m_folderLocation;
+			
+			template<typename FileName, typename... FileNames>
+			Texture loadTexture(Texture& texture, const FileName fileName, const FileNames... fileNames)
+			{
+				addImageToTexture(texture, fileName);
+				return loadTexture(texture, fileNames...);
+			}
+			
+			template<typename FileName>
+			Texture loadTexture(Texture& texture, const FileName fileName)
+			{
+				addImageToTexture(texture, fileName);
+				return texture;
+			}
+			
+			void addImageToTexture(Texture& texture, const std::string& fileName);
 	};
 	
-	class Texture
+	class FrameBuffer
 	{
 		public:
-			Texture(TextureManager* manager, const std::size_t id);
+			FrameBuffer(const int& width, const int& height);
 			
-			Texture(const Texture& texture);
+			~FrameBuffer();
 			
-			void read(const int& location) const;
+			void write();
+			
+			void read();
 			
 		private:
-			std::size_t m_id;
-			std::shared_ptr<TextureManager> m_manager;
+			unsigned int fbo;
+			unsigned int colorTargetId;
+			unsigned int rbo;
+			
 	};
+	
 }

@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "Camera.h"
 #include <Circe/Circe.h>
+#include "Input.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -23,9 +24,16 @@ namespace Medusa
 			virtual void terminate()=0;
 			virtual void swapBuffers()=0;
 			
+			Keyboard& getKeyboard();
+			Mouse& getMouse();
+			int getWidth() const;
+			int getHeight() const;
+			
 		protected:
-			const int width, height;
+			int width, height;
 			const char* title;
+			Keyboard m_keyboard;
+			Mouse m_mouse;
 	};
 	
 	template<typename T>
@@ -64,9 +72,20 @@ namespace Medusa
 			{
 				window.swapBuffers();
 			}
+			
+			Keyboard& getKeyboard()
+			{
+				return window.getKeyboard();
+			}
+			
+			Mouse& getMouse()
+			{
+				return window.getMouse();
+			}
 		
 		private:
 			T window;
+			
 	};
 	
 	class GLFWWindow : public IWindow

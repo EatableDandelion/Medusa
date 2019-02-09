@@ -63,7 +63,7 @@ namespace Medusa
 		public:
 			Mesh(MeshData& data, const MeshType& meshType);	
 			
-			void draw();
+			void draw(const int& culling);
 			
 		private:		
 			unsigned int meshIndex;
@@ -78,7 +78,7 @@ namespace Medusa
 	class MeshData
 	{
 		public:
-			MeshData();
+			MeshData(const int& faceOrientation = 1);
 			
 			void draw(const GLenum& renderType);
 		
@@ -89,6 +89,7 @@ namespace Medusa
 			GLuint vertexBuffer;
 			GLuint indexBuffer;
 			std::string m_fileName;
+			int m_faceOrientation;// 1 = front face display, -1 = back face display, 0 = no culling (both faces displayed)
 			friend class MeshLoader;
 	};
 	
