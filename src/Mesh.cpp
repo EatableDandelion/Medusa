@@ -41,18 +41,17 @@ namespace Medusa
 	
 	void Mesh::draw(const int& culling)
 	{
-		m_resource->draw(m_meshType, culling);
+		m_resource->draw(m_meshType, culling*m_faceOrientation);
 	}
 	
-	Mesh::Mesh(MeshData& data, const MeshType& meshType):ResourceHandle(data), m_meshType(meshType)
+	Mesh::Mesh(MeshData& data, const MeshType& meshType, const int& faceOrientation):ResourceHandle(data), m_meshType(meshType), m_faceOrientation(faceOrientation)
 	{}
 
-	MeshData::MeshData(const int& faceOrientation):vertices(), indices(), vertexBuffer(0), indexBuffer(0),  m_faceOrientation(faceOrientation)
+	MeshData::MeshData():vertices(), indices(), vertexBuffer(0), indexBuffer(0)
 	{}
 	
-	void MeshData::draw(const GLenum& renderType, const int& cullingType)
+	void MeshData::draw(const GLenum& renderType, const int& culling)
 	{
-		int culling(m_faceOrientation*cullingType);
 		if(culling == -1){
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);

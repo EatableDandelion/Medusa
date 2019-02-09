@@ -59,7 +59,7 @@ namespace Medusa
 	void RenderingEngine::initScreen()
 	{
 		screenShader=make_shared<Shader>(shaderResources.getResource("HUD"));
-		screenMesh=make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING));
+		screenMesh=make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING, -1));
 	}
 			
 	void RenderingEngine::renderScreen()
