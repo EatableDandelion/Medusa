@@ -26,7 +26,7 @@ namespace Medusa
 			
 			void draw();
 		
-			void addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform, const int& faceOrientation);
+			void addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
 			
 			bool shouldCloseWindow() const;
 			
@@ -37,13 +37,13 @@ namespace Medusa
 		private:
 			vector<shared_ptr<RenderingEntity>> entities;
 			Window<GLFWWindow> m_window;
-			ResourceManager<Shader, ShaderData, ShaderLoader> shaderResources;
-			ResourceManager<Mesh, MeshData, MeshLoader> meshResources;
-			TextureManager textureResources;
+			ResourceManager<Shader, ShaderData> shaderResources;
+			ResourceManager<Mesh, MeshData> meshResources;
+			ResourceManager<Texture, TextureData> textureResources;
 			Camera camera;
 			RenderingPass pass;
 			FrameBuffer framebuffer;
-			std::shared_ptr<Shader> screenShader;
+			Shader screenShader;
 			std::shared_ptr<Mesh> screenMesh;
 			
 			void initScreen();

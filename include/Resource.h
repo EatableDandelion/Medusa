@@ -11,12 +11,21 @@ namespace Medusa
 	
 	using namespace std;
 	
-	template<class RHandle, class R, class RLoader> class ResourceManager;
-	template<class R> class ResourceLoader;
-	template<class T, class R> class ResourceHandle;
+	template<typename R> class ResourceLoader;
+	template<typename ResHandle, typename R, typename RLoader> class ResourceManager;	
+	template<typename T, typename R> class ResourceHandle;
 
 	
-	template<class RHandle, class R, class RLoader>
+	template <typename R>
+	class ResourceLoader
+	{
+		public:
+			virtual ~ResourceLoader(){};
+			virtual void load(const string& folderLocation, const string& fileName, R& resource){};
+			virtual void unload(R& resource){};
+	};
+	
+	template<typename ResHandle, typename R, typename RLoader = ResourceLoader<R>>
 	class ResourceManager
 	{
 	public:	
@@ -29,19 +38,13 @@ namespace Medusa
 			unloadAll();
 		}
 		
-		
-		void loadResource(const string& name)
+		template<typename Loader, typename... ResourceArgs>
+		void load(const string& name, ResourceArgs&&... args)
 		{
-			shared_ptr<R> resourcePtr = make_shared<R>();
-			resourceLoader.load(folderLocation, name, *resourcePtr);
+			shared_ptr<R> resourcePtr = make_shared<R>(std::forward<ResourceArgs>(args)...);
+			Loader loader;
+			loader.load(folderLocation, name, *resourcePtr);
 			resources.insert(pair<size_t, shared_ptr<R>>(Circe::getId(name), resourcePtr));
-		}
-		
-		void unloadResource(const size_t& key)
-		{
-			resourceLoader.unload(*resources[key]);
-			resources[key].reset();
-			resources.erase(key);
 		}
 		
 		void unloadResource(const string& name)
@@ -59,33 +62,31 @@ namespace Medusa
 		}
 		
 		template<typename... ResourceArgs> 
-		RHandle getResource(const string& name, ResourceArgs&&... args)
+		ResHandle getResource(const string& name, ResourceArgs&&... args)
 		{
 			size_t id = Circe::getId(name);
-			if(resources.find(id)==resources.end())
+			/*if(resources.find(id)==resources.end())
 			{
-				loadResource(name);
-			}
-			return RHandle(*resources[id], std::forward<ResourceArgs>(args)...);
+				load(name);
+			}*/
+			return ResHandle(*resources[id], std::forward<ResourceArgs>(args)...);
 		}
 	
 	private:
 		RLoader resourceLoader;
 		map<size_t, std::shared_ptr<R>> resources; //The key is the ID of the resource
 		string folderLocation;
+		
+		void unloadResource(const size_t& key)
+		{
+			resourceLoader.unload(*resources[key]);
+			resources[key].reset();
+			resources.erase(key);
+		}
 
 	};
 	
-	template <class R>
-	class ResourceLoader
-	{
-		public:
-			virtual ~ResourceLoader(){};
-			virtual void load(const string& folderLocation, const string& fileName, R& resource)=0;
-			virtual void unload(R& resource)=0;
-	};
-	
-	template<class T, class R>
+	template<typename T, typename R>
 	class ResourceHandle
 	{
 		public:
@@ -104,68 +105,15 @@ namespace Medusa
 				--ref;
 			}
 			
+			std::shared_ptr<R> operator->()
+			{
+				return m_resource;
+			}
+			
 		protected:
 			std::shared_ptr<R> m_resource;
 	};
 	
 	template<typename T, typename R> unsigned int ResourceHandle<T, R>::ref(0);
-	
-	
-	
-	
-	
-	class RData
-	{
-		public:
-			RData(const std::string& folderLocation, const std::string& fileName)
-			{}
-			
-			virtual ~RData() = 0;
-	};
-	
-	template<typename Handle, typename Data>
-	class RManager
-	{
-		public:
-			RManager(const std::string& folderLocation):m_folderLocation(folderLocation)
-			{}
-		
-			Handle getHandle(const std::string& fileName)
-			{
-				int id(Circe::getId(fileName));
-				if(m_resources.find(id) == m_resources.end())
-				{
-					m_resources.emplace(id, std::make_shared<Data>(m_folderLocation, fileName));
-				}
-				return Handle(this, id);
-			}
-			
-			Data* get(const int& id)
-			{
-				return m_resources[id].get();
-			}
-			
-		private:
-			map<int, std::shared_ptr<Data>> m_resources;
-			std::string m_folderLocation;
-	};
-	
-	template<typename T, typename Data>
-	class RHandle
-	{
-		public:
-			Data* operator->()
-			{
-				return m_manager.get(m_id);
-			}
-			
-		private:
-			int m_id;
-			std::shared_ptr<RManager<T, Data>> m_manager;
-			friend class RManager<T, Data>;
-		
-			RHandle(const RManager<T, Data>* manager, const int& id):m_manager(manager), m_id(id)
-			{}
-	};
 	
 }

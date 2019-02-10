@@ -6,8 +6,15 @@ namespace Medusa
 	using namespace Circe;
 	using namespace std;
 	
-	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"),camera(2.0f, 2.0f), shaderResources("../../Resource/Shader/", specs), meshResources("../../Resource/Mesh/", specs), textureResources("../../Resource/Texture/"), framebuffer(windowWidth, windowHeight)
+	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"),camera(2.0f, 2.0f), shaderResources("../../Resource/Shader/"), meshResources("../../Resource/Mesh/"), textureResources("../../Resource/Texture/"), framebuffer(windowWidth, windowHeight)
 	{
+		meshResources.load<OBJLoader>("plane.obj", -1);
+		meshResources.load<OBJLoader>("monkey.obj", 1);
+		shaderResources.load<ShaderLoader>("Basic", specs);
+		shaderResources.load<ShaderLoader>("HUD", specs);
+		textureResources.load<TextureLoader>("Warframe0000.jpg");
+		textureResources.load<TextureLoader>("Warframe0002.jpg");
+		
 		pass.setShader(shaderResources.getResource("Basic"));
 		initScreen();
 	}
@@ -43,11 +50,11 @@ namespace Medusa
 		m_window.swapBuffers();
 	}
 	
-	void RenderingEngine::addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform, const int& faceOrientation)
+	void RenderingEngine::addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform)
 	{
-		shared_ptr<Mesh> mesh = make_shared<Mesh>(meshResources.getResource(meshName, Medusa::TRIANGLE_RENDERING, faceOrientation));
+		shared_ptr<Mesh> mesh = make_shared<Mesh>(meshResources.getResource(meshName, Medusa::TRIANGLE_RENDERING));
 		shared_ptr<RenderingEntity> entity = make_shared<RenderingEntity>(mesh, transform);
-		entity->setTexture(textureResources.getTexture(textureName));
+		entity->setTexture(textureResources.getResource(textureName));
 		entities.push_back(entity);
 	}
 	
@@ -58,8 +65,8 @@ namespace Medusa
 	
 	void RenderingEngine::initScreen()
 	{
-		screenShader=make_shared<Shader>(shaderResources.getResource("HUD"));
-		screenMesh=make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING, -1));
+		screenShader = shaderResources.getResource("HUD");
+		screenMesh=make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING));
 	}
 			
 	void RenderingEngine::renderScreen()

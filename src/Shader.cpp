@@ -90,20 +90,16 @@ namespace Medusa
 	Shader::Shader(ShaderData& data):ResourceHandle(data)
 	{}
 	
-	void Shader::bind()
-	{
-		m_resource->bind();
-	}
 	
-	void Shader::update(const std::shared_ptr<Material> material)
-	{
-		m_resource->update(material);
-	}
+	//--- ShaderData ---//
 	
 	void ShaderData::bind()
 	{
 		glUseProgram(program);
 	}
+	
+	ShaderData::ShaderData(const VertexSpecs& specs):m_specs(specs)
+	{}
 	
 	void ShaderData::update(const std::shared_ptr<Material> material)
 	{
@@ -117,16 +113,13 @@ namespace Medusa
 	
 	//--- ShaderLoader ---//
 	
-	ShaderLoader::ShaderLoader(const VertexSpecs& specs):m_specs(specs)
-	{}
-	
 	void ShaderLoader::load(const std::string& directory, const string& fileName, ShaderData& shader)
 	{
 		
 		GLuint program = glCreateProgram();
 		
 		//TODO parse attributes in the file to add only whats needed
-		VertexSpecsIterator it = m_specs.begin();
+		VertexSpecsIterator it = shader.m_specs.begin();
 		while(it.hasNext())
 		{
 			glBindAttribLocation(program, it->location, it->name.c_str());
@@ -241,4 +234,5 @@ namespace Medusa
 
 		return true;
 	}
+
 }

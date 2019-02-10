@@ -60,15 +60,14 @@ namespace Medusa
 			Shader();
 		
 			Shader(ShaderData& data);
-	
-			void bind();
-	
-			void update(const std::shared_ptr<Material> material);	
 	};
+	
 	
 	class ShaderData
 	{
-		public:		
+		public:
+			ShaderData(const VertexSpecs& specs);
+		
 			void bind();
 			
 			void update(const std::shared_ptr<Material> material);
@@ -78,13 +77,13 @@ namespace Medusa
 			unordered_map<size_t, GLint> uniforms;
 			vector<GLuint> shaderStages;
 			std::string m_fileName;
+			VertexSpecs m_specs;
 			friend class ShaderLoader;			
 	};
 	
 	class ShaderLoader : public ResourceLoader<ShaderData>
 	{
 		public:
-			ShaderLoader(const VertexSpecs& specs);
 			virtual void load(const std::string& directory, const std::string& fileName, ShaderData& shader);
 			
 			virtual void unload(ShaderData& shader);
@@ -94,6 +93,6 @@ namespace Medusa
 			void parseStage(const std::string& name, ShaderData& shader, GLuint& program);
 			bool parseLine(const std::string& line, const std::string& typeName, std::string& varName, std::string& type);
 			vector<size_t> m_attributes;
-			VertexSpecs m_specs;
+			
 	};
 }

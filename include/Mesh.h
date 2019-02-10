@@ -11,7 +11,7 @@ namespace Medusa
 	class VertexSpecs;
 	class VertexSpecsIterator;
 	class Mesh;
-	class MeshLoader;
+	class OBJLoader;
 	struct Vertex;
 	class Mesh;
 	class MeshData;
@@ -60,8 +60,8 @@ namespace Medusa
 	**/
 	class Mesh : public ResourceHandle<Mesh, MeshData>
 	{
-		public:
-			Mesh(MeshData& data, const MeshType& meshType, const int& faceOrientation = 1);	
+		public:		
+			Mesh(MeshData& data, const MeshType& meshType);	
 			
 			void draw(const int& culling);
 			
@@ -69,7 +69,7 @@ namespace Medusa
 			unsigned int meshIndex;
 			MeshType m_meshType;
 			GLenum renderType;
-			int m_faceOrientation;// 1 = front face display, -1 = back face display, 0 = no culling (both faces displayed)
+			
 	};	
 	
 	
@@ -78,8 +78,8 @@ namespace Medusa
 	**/
 	class MeshData
 	{
-		public:
-			MeshData();
+		public:	
+			MeshData(const int& faceOrientation = 1);
 			
 			void draw(const GLenum& renderType, const int& cullingType);
 		
@@ -90,28 +90,26 @@ namespace Medusa
 			GLuint vertexBuffer;
 			GLuint indexBuffer;
 			std::string m_fileName;
-			friend class MeshLoader;
+			int m_faceOrientation;// 1 = front face display, -1 = back face display, 0 = no culling (both faces displayed)
+			
+			friend class OBJLoader;
 	};
 	
-	class MeshLoader : public ResourceLoader<MeshData>
+	class OBJLoader : public ResourceLoader<MeshData>
 	{
 		public:
-			MeshLoader(const VertexSpecs& specs);
-			
-			virtual void readOBJFile(const string& file, MeshData& mesh);
+			virtual void readFile(const string& file, MeshData& mesh);
 			
 			virtual void load(const string& folderLocation, const string& fileName, MeshData& resource);
 			
 			virtual void unload(MeshData& resource);
 			
 		private:
-			vector<size_t> m_attributes;
-			VertexSpecs m_specs;		
+			vector<size_t> m_attributes;				
 	};
 	
 	struct TempVertex
 	{
-		//TempVertex();
 		float x, y, z;
 		float nx, ny, nz;
 		float u, v;

@@ -6,31 +6,23 @@
 namespace Medusa
 {
 	
-	/*class Texture;
+	class Texture;
 	class TextureData;
 	class FrameBuffer;
 	class TextureLoader;
 	
-	enum TextureType{DIFFUSE=0, NORMAL=1, TANGENT=2};
-	
 	class Texture : public ResourceHandle<Texture, TextureData>
 	{
 		public:
-		
-			Texture(TextureData& data, const TextureType& textureType);
+			Texture(TextureData& data);
 						
-			void activate(const int& location);
-			
-			void bind() const;
-			
-		private:
-			TextureType m_textureType;
+			void read(const int& location) const;
 	};
 	
 	class TextureData
 	{
 		public:
-			void activate(const int& location, const int& textureType);
+			void activate(const int& location) const;
 			
 			void bind() const;
 		
@@ -38,27 +30,6 @@ namespace Medusa
 			unsigned int textureId;
 			std::string name;
 			friend class TextureLoader;
-	};
-	
-	
-	
-	class FrameBuffer
-	{
-		public:
-			
-			~FrameBuffer();
-			
-			void init(const int& width, const int& height);
-			
-			void bindForWrite();
-			
-			void bindForRead();
-			
-		private:
-			unsigned int fbo;
-			unsigned int colorTargetId;
-			unsigned int rbo;
-			
 	};
 	
 	class TextureLoader : public ResourceLoader<TextureData>
@@ -70,9 +41,27 @@ namespace Medusa
 			
 		private:
 	};
-	*/
+	
+	class FrameBuffer
+	{
+		public:
+			FrameBuffer(const int& width, const int& height);
+			
+			~FrameBuffer();
+			
+			void write();
+			
+			void read();
+			
+		private:
+			unsigned int fbo;
+			unsigned int colorTargetId;
+			unsigned int rbo;
+			
+	};
 	
 	
+	/*
 	class TextureData;
 	class TextureManager;
 	class Texture;
@@ -96,7 +85,7 @@ namespace Medusa
 	{
 		public:	
 			Texture(const Texture& texture);
-			
+			~Texture();
 			void read(const int& location) const;
 			
 		private:
@@ -143,24 +132,6 @@ namespace Medusa
 			}
 			
 			void addImageToTexture(Texture& texture, const std::string& fileName);
-	};
-	
-	class FrameBuffer
-	{
-		public:
-			FrameBuffer(const int& width, const int& height);
-			
-			~FrameBuffer();
-			
-			void write();
-			
-			void read();
-			
-		private:
-			unsigned int fbo;
-			unsigned int colorTargetId;
-			unsigned int rbo;
-			
-	};
+	};*/
 	
 }

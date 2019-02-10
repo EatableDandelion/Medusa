@@ -41,21 +41,22 @@ namespace Medusa
 	
 	void Mesh::draw(const int& culling)
 	{
-		m_resource->draw(m_meshType, culling*m_faceOrientation);
+		m_resource->draw(m_meshType, culling);
 	}
 	
-	Mesh::Mesh(MeshData& data, const MeshType& meshType, const int& faceOrientation):ResourceHandle(data), m_meshType(meshType), m_faceOrientation(faceOrientation)
+	Mesh::Mesh(MeshData& data, const MeshType& meshType):ResourceHandle(data), m_meshType(meshType)
 	{}
 
-	MeshData::MeshData():vertices(), indices(), vertexBuffer(0), indexBuffer(0)
+	MeshData::MeshData(const int& faceOrientation): vertices(), indices(), vertexBuffer(0), indexBuffer(0), m_faceOrientation(faceOrientation)
 	{}
 	
 	void MeshData::draw(const GLenum& renderType, const int& culling)
 	{
-		if(culling == -1){
+		int cullingType(m_faceOrientation*culling);
+		if(cullingType == -1){
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
-		}else if(culling == 0){
+		}else if(cullingType == 0){
 			glDisable(GL_CULL_FACE);
 		}else{
 			glEnable(GL_CULL_FACE);
@@ -66,15 +67,10 @@ namespace Medusa
 		glBindVertexArray(0);
 	}
 	
+
 	
-	
-	MeshLoader::MeshLoader(const VertexSpecs& specs): m_specs(specs)
-	{	
-	}
-	
-	void MeshLoader::readOBJFile(const string& fileName, MeshData& meshData)
+	void OBJLoader::readFile(const string& fileName, MeshData& meshData)
 	{
-		
 		std::FILE* file = fopen(fileName.c_str(), "r");
 		if(file == NULL)
 		{
@@ -180,10 +176,10 @@ namespace Medusa
 		
 	}
 	
-	void MeshLoader::load(const string& folderLocation, const string& fileName, MeshData& mesh)
+	void OBJLoader::load(const string& folderLocation, const string& fileName, MeshData& mesh)
 	{
 		
-		readOBJFile(folderLocation+fileName, mesh);
+		readFile(folderLocation+fileName, mesh);
 		
 		std::vector<Vertex> vertices = mesh.vertices;
 		std::vector<unsigned int> indices = mesh.indices;
@@ -219,7 +215,7 @@ namespace Medusa
 		CIRCE_INFO("Mesh "+fileName+" loaded.");
 	}
 	
-	void MeshLoader::unload(MeshData& mesh)
+	void OBJLoader::unload(MeshData& mesh)
 	{ 	
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDeleteBuffers(1, &(mesh.vertexBuffer));
