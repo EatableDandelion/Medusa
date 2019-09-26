@@ -10,23 +10,22 @@ namespace Medusa
 {
 	/**		class Texture		**/
 	
-	Texture::Texture(TextureData& data): ResourceHandle(data)
+	Texture::Texture(TextureData& data, const int& textureSlot): ResourceHandle(data), m_textureSlot(textureSlot)
 	{}
 	
 	void Texture::read(const int& location) const
 	{
-		m_resource->activate(location);
+		m_resource->activate(location, m_textureSlot);
 		m_resource->bind();	
 	}
 	
 
 	/**		class TextureData		**/
 	
-	void TextureData::activate(const int& location) const
+	void TextureData::activate(const int& location, const int& textureSlot) const
 	{
-		glUniform1i(location, GL_TEXTURE0);
-		
-		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(location, GL_TEXTURE0+textureSlot);	
+		glActiveTexture(GL_TEXTURE0+textureSlot);
 	}
 	
 	void TextureData::bind() const
@@ -95,13 +94,13 @@ namespace Medusa
 		
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTargetId, 0);
 		
-		//Setting up the render buffer object
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		//Setting up the depth target
+		glGenRenderbuffers(1, &depthTargetId);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthTargetId);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthTargetId);
 		
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
@@ -126,100 +125,4 @@ namespace Medusa
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, colorTargetId);
 	}
-	
-	
-	/**		class TextureData		**/
-	/*TextureData::TextureData(const std::string& folderLocation, const std::string& fileName)
-	{
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_2D, m_id);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
-		int width, height, nbChannels;
-		unsigned char* data = stbi_load((folderLocation+fileName).c_str(), &width, &height, &nbChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			CIRCE_ERROR("Failed to load "+fileName+" texture.  "+folderLocation);
-		}
-		
-		stbi_image_free(data);
-		
-		m_fileName = fileName;
-		
-		CIRCE_INFO("Texture "+fileName+" loaded.");
-	}
-	
-	TextureData::~TextureData()
-	{
-		glDeleteTextures(1, &m_id);
-		CIRCE_INFO("Unloading texture "+m_fileName+".");
-	}
-	
-	
-	void TextureData::read(const int& location) const
-	{
-		glUniform1i(location, GL_TEXTURE0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_id);		
-	}
-	
-	*/
-	/**		class Texture		**/
-	/*Texture::Texture(TextureManager* manager):m_manager(manager)
-	{}
-	
-	Texture::~Texture()
-	{
-		std::cout << "desss text" <<std::endl;
-	}
-	
-	Texture::Texture(const Texture& texture):m_manager(texture.m_manager), m_ids(texture.m_ids)
-	{}
-	
-	void Texture::read(const int& location) const
-	{
-		for(const std::size_t id : m_ids)
-		{
-			m_manager->read(id, location);
-		}
-		
-	}*/
-	
-	/**		class TextureManager		**/
-	/*TextureManager::TextureManager(const std::string& folderLocation):m_folderLocation(folderLocation)
-	{}
-	
-	TextureManager::TextureManager(const TextureManager& textureManager):m_folderLocation(textureManager.m_folderLocation)
-	{}
-
-	TextureManager::~TextureManager()
-	{
-		m_textures.clear();
-	}
-	
-	void TextureManager::addImageToTexture(Texture& texture, const std::string& fileName)
-	{
-		size_t id = Circe::getId(fileName);
-		if(m_textures.find(id)==m_textures.end())
-		{
-			m_textures[id] = std::make_unique<TextureData>(m_folderLocation, fileName);
-		}
-		texture.m_ids.push_back(id);
-	}
-	
-	void TextureManager::read(const std::size_t id, const int& location) const
-	{
-		m_textures.find(id)->second->read(location);
-	}
-	*/
-
 }

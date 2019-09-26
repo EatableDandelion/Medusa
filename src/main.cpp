@@ -13,6 +13,16 @@ using namespace std;
 
 int main(void)
 {
+	/**
+	TODO:
+	Render to texture
+	Deferred renderer	
+	Integration with Rosie
+	Lights
+	HUD renderer
+	Input
+	*/
+	
 	CIRCE_INITPROFILER;
 	
 	high_resolution_clock::time_point t0, t1, t2;
@@ -20,7 +30,6 @@ int main(void)
 	
 	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform2(make_shared<Transform<3>>());
-	//
 	
 	
 
@@ -32,6 +41,9 @@ int main(void)
 	
 	engine.getMouse().addDragListener([&transform2](Circe::Vec2 oldValue, Circe::Vec2 newValue){transform2->rotate(-2.0f*(newValue(1)-oldValue(1)), 2.0f*(newValue(0)-oldValue(0)), 0.0f);});
 	
+	
+	EntityLoader test;
+	test.load("../../Resource/Model/", "monkey.mod");
 	
 	
 	transform1->translate(Circe::Vec3(0.0f, 0.0f, 10.0f));

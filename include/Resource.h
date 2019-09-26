@@ -64,12 +64,7 @@ namespace Medusa
 		template<typename... ResourceArgs> 
 		ResHandle getResource(const string& name, ResourceArgs&&... args)
 		{
-			size_t id = Circe::getId(name);
-			/*if(resources.find(id)==resources.end())
-			{
-				load(name);
-			}*/
-			return ResHandle(*resources[id], std::forward<ResourceArgs>(args)...);
+			return ResHandle(*resources[Circe::getId(name)], std::forward<ResourceArgs>(args)...);
 		}
 	
 	private:

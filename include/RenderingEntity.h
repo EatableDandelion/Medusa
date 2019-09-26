@@ -4,6 +4,8 @@
 #include "Shader.h"
 #include "Camera.h"
 #include <Circe/Circe.h>
+#include <vector>
+#include <iterator>
 
 namespace Medusa
 {
@@ -39,5 +41,15 @@ namespace Medusa
 			shared_ptr<Material> material;
 			static int allid;
 			int id;			
+	};
+	
+	class EntityLoader// : public ResourceLoader<RenderingEntity>
+	{
+		public:
+			void load(const std::string& folderLocation, const std::string& fileName);//, RenderingEntity& entity);
+			
+			void unload(RenderingEntity& entity);
+		private:
+			void loadComponent(const std::string& type, const std::string& value);
 	};
 }
