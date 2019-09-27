@@ -34,7 +34,7 @@ int main(void)
 	
 
 	RenderingEngine engine(600, 400);
-	engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
+	//engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
 	engine.addEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	
 	

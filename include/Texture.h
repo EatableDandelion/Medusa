@@ -61,7 +61,8 @@ namespace Medusa
 			
 		private:
 			unsigned int fbo;
-			unsigned int colorTargetId;
+			unsigned int attachmentIds[2];
+			unsigned int colorId;
 			unsigned int depthTargetId;
 			
 	};	

@@ -84,16 +84,34 @@ namespace Medusa
 		glGenFramebuffers(1, &fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		
-		//Setting up the color target
-		glGenTextures(1, &colorTargetId);	
-		glBindTexture(GL_TEXTURE_2D, colorTargetId);	
+		
+		
+		
+		//Setting up the targets
+		int index = 0;
+		unsigned int nbAttachments = size(attachmentIds);
+		unsigned int attachments[nbAttachments];
+		for(unsigned int& attachmentId : attachmentIds)
+		{
+			glGenTextures(1, &attachmentId);	
+			glBindTexture(GL_TEXTURE_2D, attachmentId);	
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);	
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+index, GL_TEXTURE_2D, attachmentId, 0);
+			attachments[index] = GL_COLOR_ATTACHMENT0+index;
+			index++;
+		}
+		/*
+		glGenTextures(1, &colorId);	
+		glBindTexture(GL_TEXTURE_2D, colorId);	
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);	
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTargetId, 0);
-		
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorId, 0);
+		*/
 		//Setting up the depth target
 		glGenRenderbuffers(1, &depthTargetId);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthTargetId);
@@ -107,7 +125,12 @@ namespace Medusa
 			CIRCE_ERROR("Could not create render buffer.");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		CIRCE_INFO("FrameBuffer initialized.")
+		CIRCE_INFO("FrameBuffer initialized.");
+		
+		
+		
+		glDrawBuffers(nbAttachments, attachments);
+		
 	}
 	
 	FrameBuffer::~FrameBuffer()
@@ -123,6 +146,10 @@ namespace Medusa
 	void FrameBuffer::read()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, colorTargetId);
+		for(unsigned int& attachmentId : attachmentIds)
+		{
+			glBindTexture(GL_TEXTURE_2D, attachmentId);
+		}
+		//glBindTexture(GL_TEXTURE_2D, colorId);
 	}
 }
