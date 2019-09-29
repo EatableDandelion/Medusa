@@ -22,15 +22,15 @@ namespace Medusa
 		public:
 			virtual ~ResourceLoader(){};
 			virtual void load(const string& folderLocation, const string& fileName, R& resource){};
-			virtual void unload(R& resource){};
+			virtual void unload(R& resource) = 0;
 	};
 	
-	template<typename ResHandle, typename R, typename RLoader = ResourceLoader<R>>
+	template<typename ResHandle, typename R, typename RLoader>// = ResourceLoader<R>
 	class ResourceManager
 	{
 	public:	
 		template<typename... RLArgs> 
-		ResourceManager(const string& folderLocation, RLArgs&&... args):folderLocation(folderLocation), resourceLoader(std::forward<RLArgs>(args)...)
+		ResourceManager(const string& folderLocation, RLArgs&&... args):folderLocation(folderLocation), resourceLoader(std::make_shared<RLoader>(std::forward<RLArgs>(args)...))
 		{}
 		
 		~ResourceManager()
@@ -38,14 +38,22 @@ namespace Medusa
 			unloadAll();
 		}
 		
-		template<typename Loader, typename... ResourceArgs>
+		template<typename... ResourceArgs>
+		void load(const string& name, ResourceArgs&&... args)
+		{
+			shared_ptr<R> resourcePtr = make_shared<R>(std::forward<ResourceArgs>(args)...);
+			resourceLoader->load(folderLocation, name, *resourcePtr);
+			resources.insert(pair<size_t, shared_ptr<R>>(Circe::getId(name), resourcePtr));
+		}
+		
+		/*template<typename Loader, typename... ResourceArgs>
 		void load(const string& name, ResourceArgs&&... args)
 		{
 			shared_ptr<R> resourcePtr = make_shared<R>(std::forward<ResourceArgs>(args)...);
 			Loader loader;
 			loader.load(folderLocation, name, *resourcePtr);
 			resources.insert(pair<size_t, shared_ptr<R>>(Circe::getId(name), resourcePtr));
-		}
+		}*/
 		
 		void unloadResource(const string& name)
 		{
@@ -68,13 +76,13 @@ namespace Medusa
 		}
 	
 	private:
-		RLoader resourceLoader;
+		std::shared_ptr<RLoader> resourceLoader;
 		map<size_t, std::shared_ptr<R>> resources; //The key is the ID of the resource
 		string folderLocation;
 		
 		void unloadResource(const size_t& key)
 		{
-			resourceLoader.unload(*resources[key]);
+			resourceLoader->unload(*(resources[key]));
 			resources[key].reset();
 			resources.erase(key);
 		}
@@ -101,6 +109,11 @@ namespace Medusa
 			}
 			
 			std::shared_ptr<R> operator->()
+			{
+				return m_resource;
+			}
+			
+			std::shared_ptr<R> operator->() const
 			{
 				return m_resource;
 			}

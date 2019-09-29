@@ -15,7 +15,6 @@ int main(void)
 {
 	/**
 	TODO:
-	Render to texture
 	Deferred renderer	
 	Integration with Rosie
 	Lights
@@ -34,7 +33,7 @@ int main(void)
 	
 
 	RenderingEngine engine(600, 400);
-	//engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
+	engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
 	engine.addEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	
 	
@@ -49,6 +48,7 @@ int main(void)
 	transform1->translate(Circe::Vec3(0.0f, 0.0f, 10.0f));
 	transform2->translate(Circe::Vec3(0.0f, 0.0f, 2.0f));
 	transform2->resize(0.5f);
+	//transform2->rotate(0.0f, 10.0f, 0.0f);
 	
 	std::cout << std::endl;
 	while(!engine.shouldCloseWindow())

@@ -37,14 +37,15 @@ namespace Medusa
 		private:
 			vector<shared_ptr<RenderingEntity>> entities;
 			Window<GLFWWindow> m_window;
-			ResourceManager<Shader, ShaderData> shaderResources;
-			ResourceManager<Mesh, MeshData> meshResources;
-			ResourceManager<Texture, TextureData> textureResources;
+			ResourceManager<Mesh, MeshData, OBJLoader> meshResources;
+			ResourceManager<Texture, TextureData, ImageTextureLoader> textureResources;
+			ResourceManager<Shader, ShaderData, ShaderLoader> shaderResources;
 			Camera camera;
 			RenderingPass pass;
 			FrameBuffer framebuffer;
 			Shader screenShader;
 			std::shared_ptr<Mesh> screenMesh;
+			std::shared_ptr<Material> screenMaterial;
 			
 			void initScreen();
 			

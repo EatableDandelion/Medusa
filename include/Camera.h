@@ -1,5 +1,7 @@
 #pragma once
-#include <Circe/MathObj.h>
+
+#include "memory"
+#include <Circe/Circe.h>
 
 namespace Medusa
 {
@@ -10,9 +12,12 @@ namespace Medusa
 			
 			Circe::Mat<4> getProjectionMatrix() const;
 			
+			Circe::Mat<4> getViewMatrix() const;
+			
 			void update(const int windowWidth, const int windowHeight);
 
 		private:
 			float nearField, farField, width, height;
+			std::shared_ptr<Circe::ITransform> m_transform;
 	};
 }

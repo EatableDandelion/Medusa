@@ -6,21 +6,22 @@ namespace Medusa
 	using namespace Circe;
 	using namespace std;
 	
-	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"),camera(2.0f, 2.0f), shaderResources("../../Resource/Shader/"), meshResources("../../Resource/Mesh/"), textureResources("../../Resource/Texture/"), framebuffer(windowWidth, windowHeight)
+	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"),camera(2.0f, 2.0f), shaderResources("../../Resource/Shader/"), meshResources("../../Resource/Mesh/"), textureResources("../../Resource/Texture/"), framebuffer(windowWidth, windowHeight), screenMaterial(std::make_shared<Material>())
 	{
-		meshResources.load<OBJLoader>("plane.obj", -1);
-		meshResources.load<OBJLoader>("monkey.obj", 1);
-		shaderResources.load<ShaderLoader>("Basic", specs);
-		shaderResources.load<ShaderLoader>("HUD", specs);
-		textureResources.load<TextureLoader>("Warframe0000.jpg");
-		textureResources.load<TextureLoader>("Warframe0002.jpg");
+		meshResources.load("plane.obj", -1);
+		meshResources.load("monkey.obj", 1);
+		shaderResources.load("GBufferPass", specs);
+		shaderResources.load("HUD", specs);
+		textureResources.load("Warframe0000.jpg");
+		textureResources.load("Warframe0002.jpg");
 		
-		pass.setShader(shaderResources.getResource("Basic"));
+		pass.setShader(shaderResources.getResource("GBufferPass"));
 		initScreen();
 	}
 	
 	RenderingEngine::~RenderingEngine()
 	{
+		textureResources.unloadAll();
 		shaderResources.unloadAll();
 		meshResources.unloadAll();
 		CIRCE_INFO("Rendering engine terminated");
@@ -67,16 +68,23 @@ namespace Medusa
 	{
 		screenShader = shaderResources.getResource("HUD");
 		screenMesh=make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING));
+		for(const Texture& gBufferTexture : framebuffer.getTextures())
+		{
+			screenMaterial->setTexture(gBufferTexture);
+		}
 	}
 			
 	void RenderingEngine::renderScreen()
-	{
+	{	
 		framebuffer.read();
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
 		screenShader->bind();
+		screenShader->update(screenMaterial); 
+		
 		glDisable(GL_DEPTH_TEST);
 		screenMesh->draw(1);
+		glEnable(GL_DEPTH_TEST);
 	}
 	
 	Mouse& RenderingEngine::getMouse()

@@ -68,6 +68,8 @@ namespace Medusa
 	
 	void Material::setTexture(const Texture& texture)
 	{
+		//std::string name = texture->getTextureName();
+		//m_textures.insert(std::pair<std::size_t, Texture>(Circe::getId(name), texture));
 		m_textures.push_back(texture);
 	}
 
@@ -80,7 +82,12 @@ namespace Medusa
 		{
 			m_uniforms[index]->upload(location);
 		}
+		/*else if(m_textures.find(index) != m_textures.end())
+		{
+			m_textures[index].read(location);
+		}*/
 	}
+	
 	
 	//--- Shader ---//
 	
@@ -143,11 +150,14 @@ namespace Medusa
 	
 	void ShaderLoader::unload(ShaderData& shader)
 	{
+		glDeleteProgram(shader.program);
 		for(GLuint shaderStage : shader.shaderStages)
 		{
 			glDetachShader(shader.program, shaderStage);
 			glDeleteShader(shaderStage);
+			
 		}
+		
 		CIRCE_INFO("Shader "+shader.m_fileName+" unloaded");
 	}
 	

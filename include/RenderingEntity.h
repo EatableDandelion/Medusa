@@ -23,7 +23,7 @@ namespace Medusa
 			
 			void draw(const int& culling);
 			
-			bool update(const Mat<4>& projectionMatrix);
+			bool update(const Mat<4>& projectionMatrix, const Mat<4>& viewMatrix);
 			
 			template<class T>
 			void setUniform(const std::string& name, const T& value)

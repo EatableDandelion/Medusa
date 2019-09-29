@@ -216,7 +216,7 @@ namespace Medusa
 	}
 	
 	void OBJLoader::unload(MeshData& mesh)
-	{ 	
+	{
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDeleteBuffers(1, &(mesh.vertexBuffer));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

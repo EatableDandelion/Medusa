@@ -9,6 +9,8 @@
 namespace Medusa
 {
 	/**		class Texture		**/
+	Texture::Texture()
+	{}
 	
 	Texture::Texture(TextureData& data, const int& textureSlot): ResourceHandle(data), m_textureSlot(textureSlot)
 	{}
@@ -22,9 +24,23 @@ namespace Medusa
 
 	/**		class TextureData		**/
 	
-	void TextureData::activate(const int& location, const int& textureSlot) const
+	TextureData::TextureData()
 	{
-		glUniform1i(location, GL_TEXTURE0+textureSlot);	
+		first = true;
+	}
+			
+	TextureData::TextureData(const int& width, const int& height, const int& slot):width(width), height(height), slot(slot)
+	{
+		first = true;
+	}
+	
+	void TextureData::activate(const int& location, const int& textureSlot)
+	{
+		if(first)
+		{
+			first = false;
+			glUniform1i(location, textureSlot);	
+		}
 		glActiveTexture(GL_TEXTURE0+textureSlot);
 	}
 	
@@ -33,10 +49,45 @@ namespace Medusa
 		glBindTexture(GL_TEXTURE_2D, textureId);		
 	}
 	
+	unsigned int& TextureData::getTextureId()
+	{
+		return textureId;
+	}
 	
-	/**		class TextureLoader		**/
+	void TextureData::setTextureId(const unsigned int id)
+	{
+		textureId = id;
+	}
+			
+	std::string TextureData::getTextureName() const
+	{
+		return name;
+	}
 	
-	void TextureLoader::load(const string& folderLocation, const string& fileName, TextureData& resource)
+	void TextureData::setTextureName(const std::string& textureName)
+	{
+		name = textureName;
+	}
+	
+	int TextureData::getWidth() const
+	{
+		return width;
+	}
+			
+	int TextureData::getHeight() const
+	{
+		return height;
+	}
+	
+	int TextureData::getSlot() const
+	{
+		return slot;
+	}
+	
+	
+	/**		class ImageTextureLoader		**/
+	
+	void ImageTextureLoader::load(const string& folderLocation, const string& fileName, TextureData& resource)
 	{
 		unsigned int textureId;
 		glGenTextures(1, &textureId);
@@ -63,55 +114,66 @@ namespace Medusa
 		
 		stbi_image_free(data);
 		
-		resource.textureId = textureId;
+		resource.setTextureId(textureId);
 		
-		resource.name = fileName;
+		resource.setTextureName(fileName);
 		
 		CIRCE_INFO("Texture "+fileName+" loaded.");		
 	}
 			
-	void TextureLoader::unload(TextureData& resource)
+	void ImageTextureLoader::unload(TextureData& resource)
 	{
-		glDeleteTextures(1, &resource.textureId);
-		CIRCE_INFO("Unloading texture "+resource.name+".");
+		glDeleteTextures(1, &(resource.getTextureId()));
+		CIRCE_INFO("Unloading texture "+resource.getTextureName()+".");
+	}
+	
+	
+	/**		class BlankTextureLoader		**/
+	
+	void BlankTextureLoader::load(const string& folderLocation, const string& textureName, TextureData& resource)
+	{		
+		unsigned int textureId;
+		glGenTextures(1, &textureId);	
+		glBindTexture(GL_TEXTURE_2D, textureId);	
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resource.getWidth(), resource.getHeight(), 0, GL_RGBA, GL_FLOAT, 0);	
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+resource.getSlot(), GL_TEXTURE_2D, textureId, 0);
+		
+		resource.setTextureId(textureId);
+		
+		resource.setTextureName(textureName);
+		
+	}
+			
+	void BlankTextureLoader::unload(TextureData& resource)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDeleteTextures(1, &(resource.getTextureId()));
+		CIRCE_INFO("Unloading texture "+resource.getTextureName()+".");
 	}
 	
 	
 	/**		class FrameBuffer		**/
 	
-	FrameBuffer::FrameBuffer(const int& width, const int& height)
+	FrameBuffer::FrameBuffer(const int& width, const int& height):gBufferTextures("")
 	{
+		
 		glGenFramebuffers(1, &fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		
-		
-		
-		
 		//Setting up the targets
+		textures.push_back("gColor");
+		textures.push_back("gNormal");
 		int index = 0;
-		unsigned int nbAttachments = size(attachmentIds);
-		unsigned int attachments[nbAttachments];
-		for(unsigned int& attachmentId : attachmentIds)
+		for(std::string textureName : textures)
 		{
-			glGenTextures(1, &attachmentId);	
-			glBindTexture(GL_TEXTURE_2D, attachmentId);	
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);	
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+index, GL_TEXTURE_2D, attachmentId, 0);
-			attachments[index] = GL_COLOR_ATTACHMENT0+index;
-			index++;
+			gBufferTextures.load(textureName, width, height, index++);
 		}
-		/*
-		glGenTextures(1, &colorId);	
-		glBindTexture(GL_TEXTURE_2D, colorId);	
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);	
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorId, 0);
-		*/
+		unsigned int att[textures.size()] =  {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+		glDrawBuffers(textures.size(), att);
+		
+		
 		//Setting up the depth target
 		glGenRenderbuffers(1, &depthTargetId);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthTargetId);
@@ -128,13 +190,11 @@ namespace Medusa
 		CIRCE_INFO("FrameBuffer initialized.");
 		
 		
-		
-		glDrawBuffers(nbAttachments, attachments);
-		
 	}
 	
 	FrameBuffer::~FrameBuffer()
 	{
+		gBufferTextures.unloadAll();
 		glDeleteFramebuffers(1, &fbo);
 	}
 	
@@ -146,10 +206,16 @@ namespace Medusa
 	void FrameBuffer::read()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		for(unsigned int& attachmentId : attachmentIds)
+	}
+	
+	std::vector<Texture> FrameBuffer::getTextures()
+	{
+		std::vector<Texture> res;
+		int index = 0;
+		for(std::string textureName : textures)
 		{
-			glBindTexture(GL_TEXTURE_2D, attachmentId);
+			res.push_back(gBufferTextures.getResource(textureName, index++));
 		}
-		//glBindTexture(GL_TEXTURE_2D, colorId);
+		return res;
 	}
 }

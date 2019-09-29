@@ -49,8 +49,10 @@ namespace Medusa
 			
 			void uploadUniform(const std::size_t& index, const GLint& location);
 			
+			
 		private:
 			std::unordered_map<std::size_t, std::unique_ptr<Uniform>> m_uniforms;
+			//std::unordered_map<std::size_t, Texture> m_textures;
 			std::vector<Texture> m_textures;
 	};
 
@@ -60,6 +62,7 @@ namespace Medusa
 			Shader();
 		
 			Shader(ShaderData& data);
+			
 	};
 	
 	

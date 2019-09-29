@@ -30,7 +30,7 @@ namespace Medusa{
 	
 	bool RenderingPass::render(const Camera& camera, RenderingEntity& entity)
 	{		
-		if(entity.update(camera.getProjectionMatrix())){
+		if(entity.update(camera.getProjectionMatrix(), camera.getViewMatrix())){
 			m_shader->update(entity.getMaterial());
 			
 			//Draw mesh

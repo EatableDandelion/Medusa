@@ -25,11 +25,13 @@ namespace Medusa
 		m_mesh->draw(culling);
 	}
 	
-	bool RenderingEntity::update(const Mat<4>& projectionMatrix)
+	bool RenderingEntity::update(const Mat<4>& projectionMatrix, const Mat<4>& viewMatrix)
 	{		
 		if(auto transform = m_transform.lock()){
 			Mat<4> m = transform->getTransformMatrix();
 			setUniform("MVP", projectionMatrix*m);
+			setUniform("MV", viewMatrix*m);
+			
 			return true;
 		}else{
 			return false;

@@ -15,9 +15,12 @@ namespace Medusa
 	class Texture : public ResourceHandle<Texture, TextureData>
 	{
 		public:
+			Texture();
+		
 			Texture(TextureData& data, const int& textureSlot = 0);
 						
 			void read(const int& location) const;
+			
 		
 		private:
 			int m_textureSlot;
@@ -27,26 +30,54 @@ namespace Medusa
 	class TextureData
 	{
 		public:
-			void activate(const int& location, const int& textureSlot) const;
+			TextureData();
+			
+			TextureData(const int& width, const int& height, const int& slot);
+		
+			void activate(const int& location, const int& textureSlot);
 			
 			void bind() const;
+			
+			unsigned int& getTextureId();
+			
+			void setTextureId(const unsigned int id);
+			
+			std::string getTextureName() const;
+			
+			void setTextureName(const std::string& name);
+			
+			int getWidth() const;
+			
+			int getHeight() const;
+			
+			int getSlot() const;
 		
 		private:
 			unsigned int textureId;
 			std::string name;
-			
-			friend class TextureLoader;
+			int width;
+			int height;
+			int slot;
+			bool first;
 	};
 	
-	class TextureLoader : public ResourceLoader<TextureData>
+	class ImageTextureLoader : public ResourceLoader<TextureData>
 	{
 		public:			
 			virtual void load(const string& folderLocation, const string& fileName, TextureData& resource);
 			
 			virtual void unload(TextureData& resource);
-			
-		private:
 	};
+	
+	class BlankTextureLoader : public ResourceLoader<TextureData>
+	{
+		public:			
+			virtual void load(const string& folderLocation, const string& textureName, TextureData& resource);
+			
+			virtual void unload(TextureData& resource);
+	};
+	
+	//class 
 	
 	class FrameBuffer
 	{
@@ -59,11 +90,13 @@ namespace Medusa
 			
 			void read();
 			
+			std::vector<Texture> getTextures();
+			
 		private:
 			unsigned int fbo;
-			unsigned int attachmentIds[2];
-			unsigned int colorId;
+			unsigned int attachmentIds[1];
 			unsigned int depthTargetId;
-			
+			std::vector<std::string> textures;
+			ResourceManager<Texture, TextureData, BlankTextureLoader> gBufferTextures;
 	};	
 }
