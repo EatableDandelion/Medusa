@@ -29,7 +29,7 @@ namespace Medusa
 		first = true;
 	}
 			
-	TextureData::TextureData(const int& width, const int& height, const int& slot):width(width), height(height), slot(slot)
+	TextureData::TextureData(const int& width, const int& height):width(width), height(height)
 	{
 		first = true;
 	}
@@ -77,11 +77,6 @@ namespace Medusa
 	int TextureData::getHeight() const
 	{
 		return height;
-	}
-	
-	int TextureData::getSlot() const
-	{
-		return slot;
 	}
 	
 	
@@ -138,11 +133,11 @@ namespace Medusa
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resource.getWidth(), resource.getHeight(), 0, GL_RGBA, GL_FLOAT, 0);	
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+resource.getSlot(), GL_TEXTURE_2D, textureId, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+textureSlot, GL_TEXTURE_2D, textureId, 0);
 		
 		resource.setTextureId(textureId);
-		
 		resource.setTextureName(textureName);
+		textureSlot++;
 		
 	}
 			
@@ -165,10 +160,10 @@ namespace Medusa
 		//Setting up the targets
 		textures.push_back("gColor");
 		textures.push_back("gNormal");
-		int index = 0;
+
 		for(std::string textureName : textures)
 		{
-			gBufferTextures.load(textureName, width, height, index++);
+			gBufferTextures.load(textureName, width, height);
 		}
 		unsigned int att[textures.size()] =  {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 		glDrawBuffers(textures.size(), att);

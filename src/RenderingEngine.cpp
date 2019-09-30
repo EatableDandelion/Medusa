@@ -96,4 +96,9 @@ namespace Medusa
 	{
 		return m_window.getKeyboard();
 	}
+	
+	Camera& RenderingEngine::getCamera()
+	{
+		return camera;
+	}
 }

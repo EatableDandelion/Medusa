@@ -32,7 +32,7 @@ namespace Medusa
 		public:
 			TextureData();
 			
-			TextureData(const int& width, const int& height, const int& slot);
+			TextureData(const int& width, const int& height);
 		
 			void activate(const int& location, const int& textureSlot);
 			
@@ -50,14 +50,12 @@ namespace Medusa
 			
 			int getHeight() const;
 			
-			int getSlot() const;
 		
 		private:
 			unsigned int textureId;
 			std::string name;
 			int width;
 			int height;
-			int slot;
 			bool first;
 	};
 	
@@ -71,10 +69,13 @@ namespace Medusa
 	
 	class BlankTextureLoader : public ResourceLoader<TextureData>
 	{
-		public:			
+		public:
 			virtual void load(const string& folderLocation, const string& textureName, TextureData& resource);
 			
 			virtual void unload(TextureData& resource);
+			
+		private:
+			int textureSlot = 0;
 	};
 	
 	//class 

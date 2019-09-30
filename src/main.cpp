@@ -36,10 +36,11 @@ int main(void)
 	engine.addEntity("plane.obj", "Warframe0000.jpg", transform1);
 	engine.addEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	
+	Camera cam = engine.getCamera();
 	
-	
-	engine.getMouse().addDragListener([&transform2](Circe::Vec2 oldValue, Circe::Vec2 newValue){transform2->rotate(-2.0f*(newValue(1)-oldValue(1)), 2.0f*(newValue(0)-oldValue(0)), 0.0f);});
-	
+	engine.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(0.1f*(newValue(1)-oldValue(1)), -0.1f*(newValue(0)-oldValue(0)), 0.0f);});
+	engine.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
+	engine.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
 	
 	EntityLoader test;
 	test.load("../../Resource/Model/", "monkey.mod");
@@ -58,7 +59,7 @@ int main(void)
 		t1 = high_resolution_clock::now(); 
 		
 		engine.draw();
-		transform2->rotate(0.0f, 0.0f, 0.0f);
+		//transform2->rotate(0.01f, 0.01f, 0.0f);
 		
 		
 		std::cout << "\r" << "Execution time: " << (duration_cast<milliseconds>(high_resolution_clock::now() - t0)).count()/1000.0 << " s           " << std::flush;

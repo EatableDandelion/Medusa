@@ -29,8 +29,9 @@ namespace Medusa
 	{		
 		if(auto transform = m_transform.lock()){
 			Mat<4> m = transform->getTransformMatrix();
-			setUniform("MVP", projectionMatrix*m);
-			setUniform("MV", viewMatrix*m);
+			Mat<4> mv = viewMatrix*m;
+			setUniform("MVP", projectionMatrix*mv);
+			setUniform("MV", mv);
 			
 			return true;
 		}else{

@@ -15,12 +15,25 @@ namespace Medusa
 	{
 		return m_transform->getTransformMatrix();
 	}
-	
-	
+		
 	void Camera::update(const int windowWidth, const int windowHeight)
 	{
 		float ratio = windowWidth / (float) windowHeight;
 		height=width/ratio;
 	}
 
+	std::shared_ptr<Circe::Transform<3>> Camera::getTransform()
+	{
+		return m_transform;
+	}
+	
+	void Camera::translate(const float& x, const float& y, const float& z)
+	{
+		m_transform->translate(Circe::Vec3(x, y, z));
+	}
+			
+	void Camera::rotate(const float& xRot, const float& yRot, const float& zRot)
+	{
+		m_transform->rotate(xRot, yRot, zRot);
+	}
 }

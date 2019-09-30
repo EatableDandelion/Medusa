@@ -33,6 +33,8 @@ namespace Medusa
 			Mouse& getMouse();
 			
 			Keyboard& getKeyboard();
+			
+			Camera& getCamera();
 
 		private:
 			vector<shared_ptr<RenderingEntity>> entities;

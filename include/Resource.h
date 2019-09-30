@@ -21,7 +21,7 @@ namespace Medusa
 	{
 		public:
 			virtual ~ResourceLoader(){};
-			virtual void load(const string& folderLocation, const string& fileName, R& resource){};
+			//virtual void load(const string& folderLocation, const string& fileName, R& resource){};
 			virtual void unload(R& resource) = 0;
 	};
 	
@@ -45,15 +45,6 @@ namespace Medusa
 			resourceLoader->load(folderLocation, name, *resourcePtr);
 			resources.insert(pair<size_t, shared_ptr<R>>(Circe::getId(name), resourcePtr));
 		}
-		
-		/*template<typename Loader, typename... ResourceArgs>
-		void load(const string& name, ResourceArgs&&... args)
-		{
-			shared_ptr<R> resourcePtr = make_shared<R>(std::forward<ResourceArgs>(args)...);
-			Loader loader;
-			loader.load(folderLocation, name, *resourcePtr);
-			resources.insert(pair<size_t, shared_ptr<R>>(Circe::getId(name), resourcePtr));
-		}*/
 		
 		void unloadResource(const string& name)
 		{
