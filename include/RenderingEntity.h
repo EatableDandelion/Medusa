@@ -17,6 +17,8 @@ namespace Medusa
 		public:
 			RenderingEntity(const shared_ptr<Mesh>& mesh, const shared_ptr<ITransform>& transform);
 			
+			RenderingEntity();
+			
 			~RenderingEntity();
 			
 			void render(Shader& renderingPass, Camera& camera);
@@ -31,7 +33,7 @@ namespace Medusa
 				material->setUniform(name, value);
 			}
 			
-			void setTexture(const Texture& texture);
+			void setTexture(const TextureType& type, const Texture& texture);
 			
 			std::shared_ptr<Material> getMaterial() const;
 

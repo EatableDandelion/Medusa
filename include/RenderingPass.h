@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Shader.h"
-#include "Camera.h"
 #include "RenderingEntity.h"
 #include <vector>
 #include <memory>
@@ -13,18 +12,31 @@ namespace Medusa
 		public:
 			RenderingPass();
 			
+			RenderingPass(const Shader& shader);
+			
 			~RenderingPass();
 			
 			void setShader(const Shader& shader);
 			
 			void bind();
-			
-			bool render(const Camera& camera, RenderingEntity& entity);
+					
+			virtual void render(RenderingEntity& entity);
 			
 			void unbind();
+			
+		protected:
+			virtual void setUp();
+			virtual void takeDown();
 
 		private:
 			Shader m_shader;
+	};
+	
+	class GeometryPass : public RenderingPass
+	{
+		protected:
+			virtual void setUp();
+			virtual void takeDown();
 	};
 	
 

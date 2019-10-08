@@ -10,15 +10,18 @@ namespace Medusa
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
 	
+	RenderingEntity::RenderingEntity():m_transform(std::make_shared<Circe::Transform<3>>()), id(allid++)
+	{
+		CIRCE_INFO("Initializing entity "+std::to_string(id));
+	}
+	
 	RenderingEntity::~RenderingEntity()
 	{
 		CIRCE_INFO("Terminating entity "+std::to_string(id));
 	}
 	
 	void RenderingEntity::render(Shader& renderingPass, Camera& camera)
-	{
-		
-	}
+	{}
 	
 	void RenderingEntity::draw(const int& culling)
 	{
@@ -30,8 +33,9 @@ namespace Medusa
 		if(auto transform = m_transform.lock()){
 			Mat<4> m = transform->getTransformMatrix();
 			Mat<4> mv = viewMatrix*m;
+			
 			setUniform("MVP", projectionMatrix*mv);
-			setUniform("MV", mv);
+			setUniform("Model", m);
 			
 			return true;
 		}else{
@@ -39,15 +43,16 @@ namespace Medusa
 		}
 	}
 	
-	void RenderingEntity::setTexture(const Texture& texture)
+	void RenderingEntity::setTexture(const TextureType& type, const Texture& texture)
 	{
-		material->setTexture(texture);
+		material->setTexture(type, texture);
 	}
 	
 	std::shared_ptr<Material> RenderingEntity::getMaterial() const
 	{
 		return material;
 	}
+	
 
 
 	void EntityLoader::load(const std::string& folderLocation, const std::string& fileName)//, RenderingEntity& entity)

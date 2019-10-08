@@ -63,6 +63,10 @@ namespace Medusa
 		template<typename... ResourceArgs> 
 		ResHandle getResource(const string& name, ResourceArgs&&... args)
 		{
+			if(resources.find(Circe::getId(name)) == resources.end())
+			{
+				CIRCE_ERROR("Resource " +name+" has not been loaded.");
+			}
 			return ResHandle(*resources[Circe::getId(name)], std::forward<ResourceArgs>(args)...);
 		}
 	

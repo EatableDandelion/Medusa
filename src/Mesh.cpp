@@ -84,13 +84,13 @@ namespace Medusa
 		unsigned int vIndex(1);
 		unsigned int vtIndex(1);
 		unsigned int vnIndex(1);
-		
+		bool hasNormals = false;
+		bool hasTextures = false;
 		
 		char lineStart[32];
 		int firstWord = fscanf(file, "%s", lineStart);
 		while(firstWord != EOF)
 		{
-			
 			if(strcmp(lineStart, "v")==0)		//Position coords
 			{
 				TempVertex vertex;
@@ -104,50 +104,127 @@ namespace Medusa
 				fscanf(file, "%f %f\n", &u, &v);
 				textCoords[vtIndex]=Circe::Vec<2>(u, v);
 				vtIndex++;
+				hasTextures = true;
 			}
 			else if(strcmp(lineStart, "vn")==0) //Normal coords
 			{
 				float nx, ny, nz;
 				fscanf(file, "%f %f %f\n", &nx, &ny, &nz);
 				normals[vnIndex]=Circe::Vec<3>(nx, ny, nz);
+				hasNormals = true;
 				vnIndex++;
 			}
 			else if(strcmp(lineStart, "f")==0) //Facets
 			{
-				unsigned int p[4], u[4], n[4];
-				
-				int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", &p[0], &u[0], &n[0], &p[1], &u[1], &n[1], &p[2], &u[2], &n[2], &p[3], &u[3], &n[3]);
-				if(matches == 9 || matches ==12){//It's a triangle or a quad
-					for(int i = 0; i<(matches/3); i++)
-					{						
-						Circe::Vec<2> uv = textCoords[u[i]];
-						Circe::Vec<3> normal = normals[n[i]];
-						
-						vertices[p[i]].u += uv(0);
-						vertices[p[i]].v += uv(1);
-						vertices[p[i]].textCount++;
-						
-						vertices[p[i]].nx += normal(0);
-						vertices[p[i]].ny += normal(1);
-						vertices[p[i]].nz += normal(2);
-						vertices[p[i]].normalCount++;
+				if(hasTextures && hasNormals)
+				{
+					unsigned int p[4], u[4], n[4];
+					
+					int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", &p[0], &u[0], &n[0], &p[1], &u[1], &n[1], &p[2], &u[2], &n[2], &p[3], &u[3], &n[3]);
+					if(matches == 9 || matches ==12){//It's a triangle or a quad
+						for(int i = 0; i<(matches/3); i++)
+						{						
+							Circe::Vec<2> uv = textCoords[u[i]];
+							Circe::Vec<3> normal = normals[n[i]];
+							
+							vertices[p[i]].u += uv(0);
+							vertices[p[i]].v += uv(1);
+							vertices[p[i]].textCount++;
+							
+							vertices[p[i]].nx += normal(0);
+							vertices[p[i]].ny += normal(1);
+							vertices[p[i]].nz += normal(2);
+							vertices[p[i]].normalCount++;
 
+							
+						}
 						
-					}
-					
-					resultIndices.push_back(p[0]-1);
-					resultIndices.push_back(p[1]-1);
-					resultIndices.push_back(p[2]-1);
-					if(matches == 12)
-					{
 						resultIndices.push_back(p[0]-1);
+						resultIndices.push_back(p[1]-1);
 						resultIndices.push_back(p[2]-1);
-						resultIndices.push_back(p[3]-1);
+						if(matches == 12)
+						{
+							resultIndices.push_back(p[0]-1);
+							resultIndices.push_back(p[2]-1);
+							resultIndices.push_back(p[3]-1);
+						}
+						
+					}else{
+						CIRCE_ERROR("Mesh "+fileName+" format not handled.");
+						break;
 					}
-					
-				}else{
-					CIRCE_ERROR("Mesh "+fileName+" format not handled.");
 				}
+				else if(!hasTextures && !hasNormals)
+				{
+					/*unsigned int p[4];
+					
+					int matches = fscanf(file, "%d %d %d %d\n", &p[0], &p[1], &p[2], &p[3]);
+					
+					if(matches == 3 || matches ==4){//It's a triangle or a quad
+						
+						Circe::Vec<3> line1(vertices[p[1]].x-vertices[p[0]].x, vertices[p[1]].y-vertices[p[0]].y, vertices[p[1]].z-vertices[p[0]].z);
+						Circe::Vec<3> line2(vertices[p[2]].x-vertices[p[0]].x, vertices[p[2]].y-vertices[p[0]].y, vertices[p[2]].z-vertices[p[0]].z);
+						Circe::Vec<3> normal = Circe::cross(line1, line2);
+						
+						for(int i = 0; i<matches; i++)
+						{						
+							vertices[p[i]].u += 0;//uv(0);
+							vertices[p[i]].v += 0;//uv(1);
+							vertices[p[i]].textCount++;
+							
+							vertices[p[i]].nx += 0;//normal(0);
+							vertices[p[i]].ny += 0;//normal(1);
+							vertices[p[i]].nz += 0;//normal(2);
+							vertices[p[i]].normalCount++;
+						}
+						
+						resultIndices.push_back(p[0]-1);
+						resultIndices.push_back(p[1]-1);
+						resultIndices.push_back(p[2]-1);
+						if(matches == 4)
+						{
+							resultIndices.push_back(p[0]-1);
+							resultIndices.push_back(p[2]-1);
+							resultIndices.push_back(p[3]-1);
+						}
+					}else{
+						CIRCE_ERROR("Mesh "+fileName+" format not handled.");
+						break;
+					}
+					*/
+				}
+				else if(hasTextures && !hasNormals)
+				{/*
+					unsigned int p[4], u[4];
+					
+					int matches = fscanf(file, "%d/%d %d/%d %d/%d %d/%d\n", &p[0], &u[0], &p[1], &u[1], &p[2], &u[2], &p[3], &u[3]);
+					if(matches == 6 || matches ==8){//It's a triangle or a quad
+						for(int i = 0; i<(matches/2); i++)
+						{						
+							Circe::Vec<2> uv = textCoords[u[i]];
+							
+							vertices[p[i]].u += uv(0);
+							vertices[p[i]].v += uv(1);
+							vertices[p[i]].textCount++;
+							
+						}
+						
+						resultIndices.push_back(p[0]-1);
+						resultIndices.push_back(p[1]-1);
+						resultIndices.push_back(p[2]-1);
+						if(matches == 8)
+						{
+							resultIndices.push_back(p[0]-1);
+							resultIndices.push_back(p[2]-1);
+							resultIndices.push_back(p[3]-1);
+						}
+						
+					}else{
+						CIRCE_ERROR("Mesh "+fileName+" format not handled.");
+						break;
+					}*/
+				}
+				
 			}
 			firstWord = fscanf(file, "%s", lineStart);
 		}
@@ -168,12 +245,9 @@ namespace Medusa
 			resultVertices.push_back(resultVertex);
 		}
 
-		
 		meshData.vertices = resultVertices;
 		meshData.indices = resultIndices;
 		fclose(file);
-		
-		
 	}
 	
 	void OBJLoader::load(const string& folderLocation, const string& fileName, MeshData& mesh)

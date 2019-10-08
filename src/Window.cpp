@@ -117,6 +117,10 @@ namespace Medusa
 		gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 		glfwSwapInterval(1);
 		CIRCE_INFO("GLFW window initialized.");
+		
+		//Hide the cursor:
+		glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		
 		return 0;
 	}
 	

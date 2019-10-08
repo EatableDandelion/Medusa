@@ -58,6 +58,11 @@ namespace Medusa
 		setUniform(name, std::vector<float>({value(0), value(1)}), "vec2");
 	}
 	
+	void Material::setUniform(const std::string& name, const Vec<3>& value)
+	{
+		setUniform(name, std::vector<float>({value(0), value(1), value(2)}), "vec3");
+	}
+	
 	void Material::setUniform(const std::string& name, const Mat<4>& value)
 	{
 		setUniform(name, std::vector<float>({value(0,0), value(0,1), value(0,2), value(0,3),
@@ -66,28 +71,30 @@ namespace Medusa
 											 value(3,0), value(3,1), value(3,2), value(3,3)}), "mat4");
 	}
 	
-	void Material::setTexture(const Texture& texture)
+	void Material::setTexture(const TextureType& type, const Texture& texture)
 	{
-		//std::string name = texture->getTextureName();
-		//m_textures.insert(std::pair<std::size_t, Texture>(Circe::getId(name), texture));
-		m_textures.push_back(texture);
+		m_textures.insert(std::pair<int, Texture>((int)type, texture));
 	}
 
 	void Material::uploadUniform(const std::size_t& index, const GLint& location)
 	{
-		for(auto const& texture:m_textures){
-			texture.read(location);
-		}
 		if(m_uniforms.find(index) != m_uniforms.end())
 		{
 			m_uniforms[index]->upload(location);
 		}
-		/*else if(m_textures.find(index) != m_textures.end())
-		{
-			m_textures[index].read(location);
-		}*/
 	}
 	
+	void Material::uploadTexture(const int& index, const GLint& location)
+	{
+		if(m_textures.find(index) != m_textures.end())
+		{		
+			m_textures[index].read(location);
+		}
+		else
+		{
+			CIRCE_ERROR("Texture not found at slot "+index);
+		}
+	}
 	
 	//--- Shader ---//
 	
@@ -105,20 +112,48 @@ namespace Medusa
 		glUseProgram(program);
 	}
 	
-	ShaderData::ShaderData(const VertexSpecs& specs):m_specs(specs)
+	ShaderData::ShaderData(const VertexSpecs& specs):m_specs(specs), hasBeenInit(false)
 	{}
 	
 	void ShaderData::update(const std::shared_ptr<Material> material)
 	{
+		if(!hasBeenInit)
+		{
+			init();
+		}
+		
 		for(const std::pair<size_t, GLint> uniform : uniforms)
 		{
 			material->uploadUniform(uniform.first, uniform.second);
 		}
+		for(const std::pair<int, GLint> sampler : samplers)
+		{
+			material->uploadTexture(sampler.first, sampler.second);
+		}
+	}
+	
+	void ShaderData::attachTexture(const int& location, const int& textureSlot)
+	{
+		samplers.insert(std::pair<int, GLint>(textureSlot, location));
+	}
+	
+	void ShaderData::init()
+	{	
+		hasBeenInit = true;
+		for(const std::pair<int, GLint> sampler : samplers)
+		{
+			glUniform1i(sampler.second, sampler.first);
+		}
 	}
 	
 	
-	
 	//--- ShaderLoader ---//
+	ShaderLoader::ShaderLoader()
+	{
+		samplerLocations.insert(std::pair<size_t, int>(Circe::getId("diffuse0"), 0));
+		samplerLocations.insert(std::pair<size_t, int>(Circe::getId("normalMap"), 1));
+	}
+	
 	
 	void ShaderLoader::load(const std::string& directory, const string& fileName, ShaderData& shader)
 	{
@@ -199,7 +234,7 @@ namespace Medusa
 			std::cout << "Error compiling shader " << name << std::endl;
 			std::cout << errorMsg << std::endl;
 			
-			glDeleteShader(shaderStage); // Don't leak the shader.
+			glDeleteShader(shaderStage);
 			file.close();
 			return;
 		}
@@ -220,7 +255,22 @@ namespace Medusa
 		{
 			if(parseLine(line, "uniform", varName, varType))
 			{
-				shader.uniforms.insert(std::pair<size_t, GLint>(Circe::getId(varName), glGetUniformLocation(program, varName.c_str())));
+				if(varType == "sampler2D")
+				{
+					if(samplerLocations.find(Circe::getId(varName)) != samplerLocations.end())
+					{	
+						//shader.samplers.insert(std::pair<int, GLint>(samplerLocations[Circe::getId(varName)], glGetUniformLocation(program, varName.c_str())));
+						shader.attachTexture(glGetUniformLocation(program, varName.c_str()), samplerLocations[Circe::getId(varName)]);
+					}
+					else
+					{
+						CIRCE_ERROR("Texture " +varName+" not recognized.");
+					}
+				}
+				else
+				{
+					shader.uniforms.insert(std::pair<size_t, GLint>(Circe::getId(varName), glGetUniformLocation(program, varName.c_str())));
+				}
 			}
 		}
 		file.close();	

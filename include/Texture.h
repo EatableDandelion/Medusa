@@ -11,6 +11,12 @@ namespace Medusa
 	class TextureLoader;
 	class FrameBuffer;
 	
+	enum TextureType
+	{
+		COLOR = 0,
+		NORMAL = 1
+	};
+	
 	/** Texture is a handle */
 	class Texture : public ResourceHandle<Texture, TextureData>
 	{
@@ -56,7 +62,6 @@ namespace Medusa
 			std::string name;
 			int width;
 			int height;
-			bool first;
 	};
 	
 	class ImageTextureLoader : public ResourceLoader<TextureData>
@@ -87,17 +92,21 @@ namespace Medusa
 			
 			~FrameBuffer();
 			
-			void write();
+			void bindAsRenderTarget();
 			
 			void read();
+			
+			void copyDepth();
 			
 			std::vector<Texture> getTextures();
 			
 		private:
 			unsigned int fbo;
-			unsigned int attachmentIds[1];
+			//unsigned int attachmentIds[1];
 			unsigned int depthTargetId;
 			std::vector<std::string> textures;
 			ResourceManager<Texture, TextureData, BlankTextureLoader> gBufferTextures;
+			int width;
+			int height;
 	};	
 }

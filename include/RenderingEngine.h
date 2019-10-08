@@ -13,6 +13,7 @@
 #include "RenderingPass.h"
 #include <Circe/MathObj.h>
 #include "Input.h"
+#include "Lights.h"
 
 
 namespace Medusa
@@ -26,7 +27,9 @@ namespace Medusa
 			
 			void draw();
 		
-			void addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
+			void addWorldEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
+			
+			void addDebugEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform);
 			
 			bool shouldCloseWindow() const;
 			
@@ -43,14 +46,24 @@ namespace Medusa
 			ResourceManager<Texture, TextureData, ImageTextureLoader> textureResources;
 			ResourceManager<Shader, ShaderData, ShaderLoader> shaderResources;
 			Camera camera;
-			RenderingPass pass;
+			GeometryPass pass;
+			GeometryPass debugPass;
 			FrameBuffer framebuffer;
-			Shader screenShader;
-			std::shared_ptr<Mesh> screenMesh;
-			std::shared_ptr<Material> screenMaterial;
+			LightManager<AmbientLight> ambientLights;
+			LightManager<DirectionalLight> directionalLights;			
+			RenderingEntity screenEntity;
+			vector<shared_ptr<RenderingEntity>> debugEntities;
+			//std::vector<std::shared_ptr<RenderingPass>> postProcessPasses;
 			
 			void initScreen();
 			
-			void renderScreen();
+			void geometryPass();
+			
+			void lightingPass();
+			
+			void playDebugPass();
+			
+			std::shared_ptr<RenderingEntity> createEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform);
+			std::shared_ptr<RenderingEntity> createEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
 	};
 }

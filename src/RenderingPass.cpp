@@ -9,6 +9,11 @@ namespace Medusa{
 		CIRCE_INFO("Initializing rendering pass.");
 	}
 	
+	RenderingPass::RenderingPass(const Shader& shader):m_shader(shader)
+	{
+		CIRCE_INFO("Initializing rendering pass.");
+	}
+	
 	RenderingPass::~RenderingPass()
 	{
 		CIRCE_INFO("Terminating rendering pass.");
@@ -21,27 +26,34 @@ namespace Medusa{
 	
 	void RenderingPass::bind()
 	{
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-
+		setUp();
 		m_shader->bind();	
 	}
 	
-	bool RenderingPass::render(const Camera& camera, RenderingEntity& entity)
-	{		
-		if(entity.update(camera.getProjectionMatrix(), camera.getViewMatrix())){
-			m_shader->update(entity.getMaterial());
-			
-			//Draw mesh
-			entity.draw(1);
-			return true;
-		}else{
-			return false;
-		}
+	void RenderingPass::render(RenderingEntity& entity)
+	{
+		m_shader->update(entity.getMaterial());
+		entity.draw(1);
 	}
 	
 	void RenderingPass::unbind()
+	{
+		takeDown();
+	}
+	
+	void RenderingPass::setUp()
+	{}
+	
+	void RenderingPass::takeDown()
+	{}
+	
+	void GeometryPass::setUp()
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+	}
+	
+	void GeometryPass::takeDown()
 	{
 		glDisable(GL_DEPTH_TEST);
 	}

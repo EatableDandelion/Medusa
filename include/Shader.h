@@ -43,17 +43,18 @@ namespace Medusa
 		
 			void setUniform(const std::string& name, const float& value);
 			void setUniform(const std::string& name, const Vec<2>& value);
+			void setUniform(const std::string& name, const Vec<3>& value);
 			void setUniform(const std::string& name, const Mat<4>& value);
 			
-			void setTexture(const Texture& texture);
+			void setTexture(const TextureType& type, const Texture& texture);
 			
 			void uploadUniform(const std::size_t& index, const GLint& location);
+			void uploadTexture(const int& slot, const GLint& location);
 			
 			
 		private:
 			std::unordered_map<std::size_t, std::unique_ptr<Uniform>> m_uniforms;
-			//std::unordered_map<std::size_t, Texture> m_textures;
-			std::vector<Texture> m_textures;
+			std::unordered_map<int, Texture> m_textures;
 	};
 
 	class Shader : public ResourceHandle<Shader, ShaderData>
@@ -74,19 +75,27 @@ namespace Medusa
 			void bind();
 			
 			void update(const std::shared_ptr<Material> material);
+			
+			void attachTexture(const int& location, const int& textureSlot);
 		
 		private:			
 			GLuint program;
 			unordered_map<size_t, GLint> uniforms;
+			unordered_map<int, GLint> samplers;
 			vector<GLuint> shaderStages;
 			std::string m_fileName;
 			VertexSpecs m_specs;
-			friend class ShaderLoader;			
+			friend class ShaderLoader;	
+			bool hasBeenInit;
+			
+			void init();
 	};
 	
 	class ShaderLoader : public ResourceLoader<ShaderData>
 	{
 		public:
+			ShaderLoader();
+		
 			virtual void load(const std::string& directory, const std::string& fileName, ShaderData& shader);
 			
 			virtual void unload(ShaderData& shader);
@@ -96,6 +105,7 @@ namespace Medusa
 			void parseStage(const std::string& name, ShaderData& shader, GLuint& program);
 			bool parseLine(const std::string& line, const std::string& typeName, std::string& varName, std::string& type);
 			vector<size_t> m_attributes;
+			unordered_map<size_t, int> samplerLocations;
 			
 	};
 }

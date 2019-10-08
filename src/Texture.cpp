@@ -25,22 +25,14 @@ namespace Medusa
 	/**		class TextureData		**/
 	
 	TextureData::TextureData()
-	{
-		first = true;
-	}
+	{}
 			
 	TextureData::TextureData(const int& width, const int& height):width(width), height(height)
-	{
-		first = true;
-	}
+	{}
 	
 	void TextureData::activate(const int& location, const int& textureSlot)
 	{
-		if(first)
-		{
-			first = false;
-			glUniform1i(location, textureSlot);	
-		}
+		//glUniform1i(location, textureSlot);
 		glActiveTexture(GL_TEXTURE0+textureSlot);
 	}
 	
@@ -151,7 +143,7 @@ namespace Medusa
 	
 	/**		class FrameBuffer		**/
 	
-	FrameBuffer::FrameBuffer(const int& width, const int& height):gBufferTextures("")
+	FrameBuffer::FrameBuffer(const int& width, const int& height):width(width), height(height), gBufferTextures("")
 	{
 		
 		glGenFramebuffers(1, &fbo);
@@ -193,13 +185,21 @@ namespace Medusa
 		glDeleteFramebuffers(1, &fbo);
 	}
 	
-	void FrameBuffer::write()
+	void FrameBuffer::bindAsRenderTarget()
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 	}
 	
 	void FrameBuffer::read()
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);	
+	}
+	
+	void FrameBuffer::copyDepth()
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	

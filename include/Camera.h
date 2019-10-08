@@ -16,11 +16,11 @@ namespace Medusa
 			
 			void update(const int windowWidth, const int windowHeight);
 			
-			void translate(const float& x, const float& y, const float& z);
+			void translate(const Circe::REF_FRAME& frame, const float& x, const float& y, const float& z);
 			
 			void rotate(const float& xRot, const float& yRot, const float& zRot);
 			
-			std::shared_ptr<Circe::Transform<3>> getTransform();
+			//std::shared_ptr<Circe::Transform<3>> getTransform();
 
 		private:
 			float nearField, farField, width, height;
