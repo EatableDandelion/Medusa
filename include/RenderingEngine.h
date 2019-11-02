@@ -7,17 +7,16 @@
 #include "RenderingEntity.h"
 #include "Window.h"
 #include "Resource.h"
-#include "Shader.h"
-#include "Mesh.h"
-#include "Texture.h"
+#include "Assets.h"
 #include "RenderingPass.h"
 #include <Circe/MathObj.h>
 #include "Input.h"
 #include "Lights.h"
+#include "HUD.h"
 
 
 namespace Medusa
-{
+{	
 	class RenderingEngine
 	{
 		public:
@@ -27,9 +26,11 @@ namespace Medusa
 			
 			void draw();
 		
-			void addWorldEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
+			void addWorldEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform);
 			
-			void addDebugEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform);
+			void addDebugEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform);
+			
+			void addHUDEntity(const std::shared_ptr<Transform<3>> transform, const std::string& texture);
 			
 			bool shouldCloseWindow() const;
 			
@@ -40,30 +41,14 @@ namespace Medusa
 			Camera& getCamera();
 
 		private:
-			vector<shared_ptr<RenderingEntity>> entities;
+			std::shared_ptr<Assets> assets;
 			Window<GLFWWindow> m_window;
-			ResourceManager<Mesh, MeshData, OBJLoader> meshResources;
-			ResourceManager<Texture, TextureData, ImageTextureLoader> textureResources;
-			ResourceManager<Shader, ShaderData, ShaderLoader> shaderResources;
 			Camera camera;
-			GeometryPass pass;
-			GeometryPass debugPass;
 			FrameBuffer framebuffer;
-			LightManager<AmbientLight> ambientLights;
-			LightManager<DirectionalLight> directionalLights;			
-			RenderingEntity screenEntity;
-			vector<shared_ptr<RenderingEntity>> debugEntities;
-			//std::vector<std::shared_ptr<RenderingPass>> postProcessPasses;
-			
-			void initScreen();
-			
-			void geometryPass();
-			
-			void lightingPass();
-			
-			void playDebugPass();
-			
-			std::shared_ptr<RenderingEntity> createEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform);
-			std::shared_ptr<RenderingEntity> createEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform);
+			GeometryPass geometryPass;
+			DebugPass debugPass;
+			AmbientLightPass ambientLights;
+			DirectionalLightPass directionalLights;	
+			HUDPass huds;
 	};
 }

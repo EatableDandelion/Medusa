@@ -7,7 +7,7 @@ namespace Medusa
 {
 	class Camera
 	{
-		public:
+		public:		
 			Camera(float width, float height, float nearField=-0.01f, float farField=1000.0f);
 			
 			Circe::Mat<4> getProjectionMatrix() const;
@@ -16,7 +16,7 @@ namespace Medusa
 			
 			void update(const int windowWidth, const int windowHeight);
 			
-			void translate(const Circe::REF_FRAME& frame, const float& x, const float& y, const float& z);
+			void translate(const float& x, const float& y, const float& z);
 			
 			void rotate(const float& xRot, const float& yRot, const float& zRot);
 			

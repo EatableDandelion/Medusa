@@ -84,16 +84,16 @@ namespace Medusa
 		}
 	}
 	
-	void Material::uploadTexture(const int& index, const GLint& location)
+	void Material::uploadTexture(const int& index)
 	{
 		if(m_textures.find(index) != m_textures.end())
 		{		
-			m_textures[index].read(location);
+			m_textures[index].read();
 		}
-		else
+	  /*else
 		{
 			CIRCE_ERROR("Texture not found at slot "+index);
-		}
+		}*/
 	}
 	
 	//--- Shader ---//
@@ -101,7 +101,7 @@ namespace Medusa
 	Shader::Shader()
 	{}
 	
-	Shader::Shader(ShaderData& data):ResourceHandle(data)
+	Shader::Shader(const ShaderData& data):ResourceHandle(data)
 	{}
 	
 	
@@ -128,7 +128,7 @@ namespace Medusa
 		}
 		for(const std::pair<int, GLint> sampler : samplers)
 		{
-			material->uploadTexture(sampler.first, sampler.second);
+			material->uploadTexture(sampler.first);
 		}
 	}
 	
@@ -148,12 +148,6 @@ namespace Medusa
 	
 	
 	//--- ShaderLoader ---//
-	ShaderLoader::ShaderLoader()
-	{
-		samplerLocations.insert(std::pair<size_t, int>(Circe::getId("diffuse0"), 0));
-		samplerLocations.insert(std::pair<size_t, int>(Circe::getId("normalMap"), 1));
-	}
-	
 	
 	void ShaderLoader::load(const std::string& directory, const string& fileName, ShaderData& shader)
 	{
@@ -257,10 +251,12 @@ namespace Medusa
 			{
 				if(varType == "sampler2D")
 				{
-					if(samplerLocations.find(Circe::getId(varName)) != samplerLocations.end())
+					//if(samplerLocations.find(Circe::getId(varName)) != samplerLocations.end())
+					if(TextureSlot(varName) != -1)
 					{	
 						//shader.samplers.insert(std::pair<int, GLint>(samplerLocations[Circe::getId(varName)], glGetUniformLocation(program, varName.c_str())));
-						shader.attachTexture(glGetUniformLocation(program, varName.c_str()), samplerLocations[Circe::getId(varName)]);
+						//shader.attachTexture(glGetUniformLocation(program, varName.c_str()), samplerLocations[Circe::getId(varName)]);
+						shader.attachTexture(glGetUniformLocation(program, varName.c_str()), TextureSlot(varName));
 					}
 					else
 					{

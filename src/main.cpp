@@ -15,9 +15,7 @@ int main(void)
 {
 	/**
 	TODO:
-	Deferred renderer	
 	Integration with Rosie
-	Lights
 	HUD renderer
 	Input
 	*/
@@ -31,22 +29,24 @@ int main(void)
 	shared_ptr<Transform<3>> transform2(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform3(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform4(make_shared<Transform<3>>());
+	shared_ptr<Transform<3>> transform5(make_shared<Transform<3>>());
 	
-	transform2->setRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
+	transform2->setFrameRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
 
 	RenderingEngine engine(600, 400);
 	engine.addWorldEntity("plane.obj", "Warframe0000.jpg", transform1);
 	engine.addWorldEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	engine.addDebugEntity("sphere.obj", transform3);
 	engine.addDebugEntity("sphere.obj", transform4);
+	engine.addHUDEntity(transform5, "Warframe0002.jpg");
 	
 	Camera cam = engine.getCamera();
 	
 	engine.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
-	engine.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(Circe::REF_FRAME::LOCAL, -0.1f, 0.0f, 0.0f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(Circe::REF_FRAME::LOCAL, 0.1f, 0.0f, 0.0f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(Circe::REF_FRAME::LOCAL, 0.0f, 0.0f, -0.1f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(Circe::REF_FRAME::LOCAL, 0.0f, 0.0f, 0.1f);}});
+	engine.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
+	engine.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
+	engine.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
+	engine.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, 0.1f);}});
 
 
 	EntityLoader test;
@@ -60,7 +60,9 @@ int main(void)
 	transform2->resize(0.5f);
 	transform3->resize(0.1f);
 	transform4->resize(0.1f);
-	
+	transform5->resize(0.1f);
+	//transform5->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.50f, 0.50f, 0.0f));
+
 	std::cout << std::endl;
 	while(!engine.shouldCloseWindow())
 	{	
@@ -70,7 +72,6 @@ int main(void)
 		
 		engine.draw();
 		//transform2->rotate(0.01f, 0.01f, 0.0f);
-		
 		
 		std::cout << "\r" << "Execution time: " << (duration_cast<milliseconds>(high_resolution_clock::now() - t0)).count()/1000.0 << " s           " << std::flush;
 		

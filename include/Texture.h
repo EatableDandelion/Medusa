@@ -13,9 +13,11 @@ namespace Medusa
 	
 	enum TextureType
 	{
-		COLOR = 0,
+		DIFFUSE0 = 0,
 		NORMAL = 1
 	};
+	
+	int TextureSlot(const std::string& name);
 	
 	/** Texture is a handle */
 	class Texture : public ResourceHandle<Texture, TextureData>
@@ -25,7 +27,7 @@ namespace Medusa
 		
 			Texture(TextureData& data, const int& textureSlot = 0);
 						
-			void read(const int& location) const;
+			void read() const;
 			
 		
 		private:
@@ -40,7 +42,7 @@ namespace Medusa
 			
 			TextureData(const int& width, const int& height);
 		
-			void activate(const int& location, const int& textureSlot);
+			void activate(const int& textureSlot);
 			
 			void bind() const;
 			
@@ -92,20 +94,19 @@ namespace Medusa
 			
 			~FrameBuffer();
 			
-			void bindAsRenderTarget();
+			void bindForWrite();
 			
-			void read();
+			void bindForRead();
 			
 			void copyDepth();
 			
-			std::vector<Texture> getTextures();
+			//std::vector<Texture> getTextures();
 			
 		private:
 			unsigned int fbo;
-			//unsigned int attachmentIds[1];
 			unsigned int depthTargetId;
-			std::vector<std::string> textures;
-			ResourceManager<Texture, TextureData, BlankTextureLoader> gBufferTextures;
+			std::vector<Texture> textures;
+			ResourceManager<Texture, TextureData, BlankTextureLoader> textureManager;
 			int width;
 			int height;
 	};	

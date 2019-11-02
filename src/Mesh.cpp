@@ -39,18 +39,21 @@ namespace Medusa
 		return &m_attributes[index];
 	}
 	
-	void Mesh::draw(const int& culling)
+	void Mesh::draw(const int& culling) const
 	{
 		m_resource->draw(m_meshType, culling);
 	}
 	
-	Mesh::Mesh(MeshData& data, const MeshType& meshType):ResourceHandle(data), m_meshType(meshType)
+	Mesh::Mesh(const MeshData& data, const MeshType& meshType):ResourceHandle(data), m_meshType(meshType)
 	{}
+	
+	/*Mesh::Mesh(const Mesh& other):meshIndex(other.meshIndex), m_meshType(other.m_meshType), renderType(other.renderType)
+	{}*/
 
 	MeshData::MeshData(const int& faceOrientation): vertices(), indices(), vertexBuffer(0), indexBuffer(0), m_faceOrientation(faceOrientation)
 	{}
 	
-	void MeshData::draw(const GLenum& renderType, const int& culling)
+	void MeshData::draw(const GLenum& renderType, const int& culling) const
 	{
 		int cullingType(m_faceOrientation*culling);
 		if(cullingType == -1){

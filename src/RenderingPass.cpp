@@ -4,57 +4,63 @@
 
 namespace Medusa{
 	
-	RenderingPass::RenderingPass()
-	{
-		CIRCE_INFO("Initializing rendering pass.");
-	}
-	
-	RenderingPass::RenderingPass(const Shader& shader):m_shader(shader)
-	{
-		CIRCE_INFO("Initializing rendering pass.");
-	}
-	
-	RenderingPass::~RenderingPass()
-	{
-		CIRCE_INFO("Terminating rendering pass.");
-	}
-	
-	void RenderingPass::setShader(const Shader& shader)
-	{
-		m_shader=shader;
-	}
-	
-	void RenderingPass::bind()
-	{
-		setUp();
-		m_shader->bind();	
-	}
-	
-	void RenderingPass::render(RenderingEntity& entity)
-	{
-		m_shader->update(entity.getMaterial());
-		entity.draw(1);
-	}
-	
-	void RenderingPass::unbind()
-	{
-		takeDown();
-	}
-	
-	void RenderingPass::setUp()
+	GeometryPass::GeometryPass():RenderingPass("GeometryPass")
 	{}
 	
-	void RenderingPass::takeDown()
-	{}
-	
-	void GeometryPass::setUp()
+	void GeometryPass::bind()
 	{
+		glDepthMask(true);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 	}
 	
-	void GeometryPass::takeDown()
+	void GeometryPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	{
+		/*Mat<4> projectionMatrix = camera.getProjectionMatrix();
+		Mat<4> viewMatrix = camera.getViewMatrix();
+		
+		Mat<4> m = entity->getTransformMatrix();
+		Mat<4> mv = viewMatrix*m;
+			
+		entity->setUniform("MVP", projectionMatrix*mv);
+		entity->setUniform("Model", m);*/
+		entity->updateModel();
+		entity->updateMVP(camera.getProjectionMatrix()*camera.getViewMatrix());
+	}
+	
+	void GeometryPass::unbind()
 	{
 		glDisable(GL_DEPTH_TEST);
+		glDepthMask(false);
+	}
+	
+	void GeometryPass::addEntity(const Mesh& mesh, const Texture& texture, const std::shared_ptr<Transform<3>>& transform)
+	{
+		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity<RenderingEntity>(mesh, transform);
+		entity->setTexture(TextureType::DIFFUSE0, texture);
+	}
+
+	DebugPass::DebugPass():RenderingPass("DebugDisplay")
+	{}
+	
+	void DebugPass::bind()
+	{
+		glDepthMask(false);
+	}
+			
+	void DebugPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	{
+		entity->setUniform<Circe::Vec3>("objectColor", Circe::Vec3(0.5f, 1.0f, 1.0f));
+		geometryPass.updateEntity(entity, camera);
+	}
+	
+	void DebugPass::unbind()
+	{
+		glDepthMask(true);
+	}
+	
+	void DebugPass::addEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform)
+	{
+		RenderingPass::createEntity<RenderingEntity>(mesh, transform);
 	}
 }

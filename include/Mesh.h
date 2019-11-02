@@ -61,9 +61,11 @@ namespace Medusa
 	class Mesh : public ResourceHandle<Mesh, MeshData>
 	{
 		public:		
-			Mesh(MeshData& data, const MeshType& meshType);	
+			Mesh(const MeshData& data, const MeshType& meshType);
 			
-			void draw(const int& culling);
+			//Mesh(const Mesh& other);
+			
+			void draw(const int& culling) const;
 			
 		private:		
 			unsigned int meshIndex;
@@ -81,7 +83,7 @@ namespace Medusa
 		public:	
 			MeshData(const int& faceOrientation = 1);
 			
-			void draw(const GLenum& renderType, const int& cullingType);
+			void draw(const GLenum& renderType, const int& cullingType) const;
 		
 		private:
 			std::vector<Vertex> vertices;

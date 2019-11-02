@@ -15,37 +15,41 @@ namespace Medusa
 	class RenderingEntity
 	{
 		public:
-			RenderingEntity(const shared_ptr<Mesh>& mesh, const shared_ptr<ITransform>& transform);
+			RenderingEntity(const Mesh& mesh, const shared_ptr<Transform<3>>& transform);
 			
-			RenderingEntity();
+			RenderingEntity(const Mesh& mesh);
 			
 			~RenderingEntity();
-			
-			void render(Shader& renderingPass, Camera& camera);
-			
-			void draw(const int& culling);
-			
-			bool update(const Mat<4>& projectionMatrix, const Mat<4>& viewMatrix);
+
+			virtual void draw(const int& culling);
 			
 			template<class T>
 			void setUniform(const std::string& name, const T& value)
-			{	
+			{
 				material->setUniform(name, value);
 			}
+			
+			void updateModel();
+			
+			void updateMVP(const Circe::Mat<4>& viewProjection);
 			
 			void setTexture(const TextureType& type, const Texture& texture);
 			
 			std::shared_ptr<Material> getMaterial() const;
 
+			void attachTo(const std::shared_ptr<Transform<3>>& parentTransform);
+			
 		private:
-			shared_ptr<Mesh> m_mesh;
-			weak_ptr<ITransform> m_transform;
+			Mesh m_mesh;
+			weak_ptr<Transform<3>> m_transform;
 			shared_ptr<Material> material;
 			static int allid;
-			int id;			
+			int id;		
+			
+			Mat<4> getTransformMatrix() const;	
 	};
 	
-	class EntityLoader// : public ResourceLoader<RenderingEntity>
+	class EntityLoader
 	{
 		public:
 			void load(const std::string& folderLocation, const std::string& fileName);//, RenderingEntity& entity);

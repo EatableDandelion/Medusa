@@ -49,7 +49,7 @@ namespace Medusa
 			void setTexture(const TextureType& type, const Texture& texture);
 			
 			void uploadUniform(const std::size_t& index, const GLint& location);
-			void uploadTexture(const int& slot, const GLint& location);
+			void uploadTexture(const int& slot);
 			
 			
 		private:
@@ -62,7 +62,7 @@ namespace Medusa
 		public:
 			Shader();
 		
-			Shader(ShaderData& data);
+			Shader(const ShaderData& data);
 			
 	};
 	
@@ -94,8 +94,6 @@ namespace Medusa
 	class ShaderLoader : public ResourceLoader<ShaderData>
 	{
 		public:
-			ShaderLoader();
-		
 			virtual void load(const std::string& directory, const std::string& fileName, ShaderData& shader);
 			
 			virtual void unload(ShaderData& shader);
@@ -104,8 +102,6 @@ namespace Medusa
 			void loadShaderStage(const std::string& name, const GLenum& shaderType, GLuint& program, ShaderData& shader);
 			void parseStage(const std::string& name, ShaderData& shader, GLuint& program);
 			bool parseLine(const std::string& line, const std::string& typeName, std::string& varName, std::string& type);
-			vector<size_t> m_attributes;
-			unordered_map<size_t, int> samplerLocations;
-			
+			vector<size_t> m_attributes;			
 	};
 }

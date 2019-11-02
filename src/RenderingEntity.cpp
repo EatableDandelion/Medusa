@@ -5,12 +5,12 @@ namespace Medusa
 {	
 	int RenderingEntity::allid=0;
 	
-	RenderingEntity::RenderingEntity(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<ITransform>& transform):m_mesh(mesh), m_transform(weak_ptr<ITransform>(transform)), material(make_shared<Material>()), id(allid++)
+	RenderingEntity::RenderingEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform):m_mesh(mesh), m_transform(weak_ptr<Transform<3>>(transform)), material(make_shared<Material>()), id(allid++)
 	{
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
 	
-	RenderingEntity::RenderingEntity():m_transform(std::make_shared<Circe::Transform<3>>()), id(allid++)
+	RenderingEntity::RenderingEntity(const Mesh& mesh): m_mesh(mesh), material(make_shared<Material>()), m_transform(std::make_shared<Circe::Transform<3>>()), id(allid++)
 	{
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
@@ -20,27 +20,19 @@ namespace Medusa
 		CIRCE_INFO("Terminating entity "+std::to_string(id));
 	}
 	
-	void RenderingEntity::render(Shader& renderingPass, Camera& camera)
-	{}
+	void RenderingEntity::updateModel()
+	{
+		setUniform("Model", getTransformMatrix());
+	}
+	
+	void RenderingEntity::updateMVP(const Circe::Mat<4>& viewProjection)
+	{
+		setUniform("MVP", viewProjection*getTransformMatrix());		
+	}
 	
 	void RenderingEntity::draw(const int& culling)
 	{
-		m_mesh->draw(culling);
-	}
-	
-	bool RenderingEntity::update(const Mat<4>& projectionMatrix, const Mat<4>& viewMatrix)
-	{		
-		if(auto transform = m_transform.lock()){
-			Mat<4> m = transform->getTransformMatrix();
-			Mat<4> mv = viewMatrix*m;
-			
-			setUniform("MVP", projectionMatrix*mv);
-			setUniform("Model", m);
-			
-			return true;
-		}else{
-			return false;
-		}
+		m_mesh.draw(culling);
 	}
 	
 	void RenderingEntity::setTexture(const TextureType& type, const Texture& texture)
@@ -53,6 +45,25 @@ namespace Medusa
 		return material;
 	}
 	
+	Mat<4> RenderingEntity::getTransformMatrix() const
+	{
+		if(auto transform = m_transform.lock())
+		{
+			return transform->getTransformMatrix();
+		}
+		else
+		{
+			return Mat<4>();
+		}
+	}
+	
+	void RenderingEntity::attachTo(const std::shared_ptr<Transform<3>>& parentTransform)
+	{
+		if(auto transform = m_transform.lock())
+		{
+			transform->attachTo(parentTransform);
+		}
+	}
 
 
 	void EntityLoader::load(const std::string& folderLocation, const std::string& fileName)//, RenderingEntity& entity)

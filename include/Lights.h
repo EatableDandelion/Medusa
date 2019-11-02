@@ -9,64 +9,76 @@
 namespace Medusa
 {
 	
-	struct Light
+	class Light : public RenderingEntity
 	{
 		public:
-			Light(const float& intensity, const Circe::Vec3& color);
-			
-			virtual void update(RenderingEntity& screenEntity) = 0;
+			Light(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
 			
 			void setIntensity(const float& intensity);
 			
-			Circe::Vec3 getColor() const;
+			void setColor(const Circe::Vec3& color);
 			
-		protected:
+		private:
 			Circe::Vec3 color;
 	};
 	
-	struct DirectionalLight : public Light
+	class DirectionalLight : public Light
 	{
 		public:
-			DirectionalLight(const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction);
+			DirectionalLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction);
 		
-			Circe::Vec3 getDirection() const;
-			
-			virtual void update(RenderingEntity& screenEntity);
-			
-		protected:
-			Circe::Vec3 direction;
+			void setDirection(const Circe::Vec3& direction);
 	};
 	
-	struct AmbientLight : public Light
+	class AmbientLight : public Light
 	{
 		public:
-			AmbientLight(const float& intensity, const Circe::Vec3& color);
-			
-			virtual void update(RenderingEntity& screenEntity);
+			AmbientLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
+	};
+	/*
+	class PointLight : public Light
+	{
+		public:
+			PointLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
+	};*/
+	
+	class DirectionalLightPass : public RenderingPass<DirectionalLightPass>
+	{
+		public:
+			DirectionalLightPass();
+		
+			void bind();
+		
+			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+		
+			void unbind();
+		
+			void addEntity(const float& intensity, const Circe::Vec<3>& color, const Circe::Vec<3>& direction);
 	};
 	
-	template<typename LightType>
-	class LightManager : public RenderingPass
+	class AmbientLightPass : public RenderingPass<AmbientLightPass>
 	{
 		public:
-			virtual void render(RenderingEntity& screenEntity)
-			{
-				bind();
-				for(LightType light : lights)
-				{
-					light.update(screenEntity);
-					RenderingPass::render(screenEntity);
-				}
-				unbind();
-			}
-
-			template<typename... Args>
-			void addLight(Args... args)
-			{
-				lights.push_back(LightType(std::forward<Args>(args)...));
-			}
-
-		private:
-			std::vector<LightType> lights;
+			AmbientLightPass();
+		
+			void bind();
+		
+			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+		
+			void unbind();
+		
+			void addEntity(const float& intensity, const Circe::Vec<3>& color);
 	};
+	/*
+	class PointLightPass : public RenderingPass<PointLightPass>
+	{
+		public:
+			void bind();
+		
+			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+		
+			void unbind();
+		
+			void addEntity(const std::shared_ptr<Transform<3>>& transform, const Mesh& screenMesh, const float& intensity, const Circe::Vec3& color);
+	};*/
 }

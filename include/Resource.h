@@ -61,13 +61,13 @@ namespace Medusa
 		}
 		
 		template<typename... ResourceArgs> 
-		ResHandle getResource(const string& name, ResourceArgs&&... args)
+		ResHandle getResource(const string& name, ResourceArgs&&... args) const
 		{
 			if(resources.find(Circe::getId(name)) == resources.end())
 			{
 				CIRCE_ERROR("Resource " +name+" has not been loaded.");
 			}
-			return ResHandle(*resources[Circe::getId(name)], std::forward<ResourceArgs>(args)...);
+			return ResHandle(*resources.at(Circe::getId(name)), std::forward<ResourceArgs>(args)...);
 		}
 	
 	private:
@@ -81,7 +81,6 @@ namespace Medusa
 			resources[key].reset();
 			resources.erase(key);
 		}
-
 	};
 	
 	template<typename T, typename R>
@@ -93,7 +92,7 @@ namespace Medusa
 			ResourceHandle()
 			{}
 			
-			ResourceHandle(R& resource):m_resource(std::make_shared<R>(resource))
+			ResourceHandle(const R& resource):m_resource(std::make_shared<R>(resource))
 			{
 				++ref;
 			}

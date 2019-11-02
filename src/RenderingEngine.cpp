@@ -6,38 +6,35 @@ namespace Medusa
 	using namespace Circe;
 	using namespace std;
 	
-	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"),camera(2.0f, 2.0f), shaderResources("../../Resource/Shader/"), meshResources("../../Resource/Mesh/"), textureResources("../../Resource/Texture/"), framebuffer(windowWidth, windowHeight)
+
+	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight, const VertexSpecs& specs):m_window(windowWidth, windowHeight, "test"), assets(std::make_shared<Assets>("../../Resource/Mesh/", "../../Resource/Texture/", "../../Resource/Shader/", specs)),camera(2.0f, 2.0f), framebuffer(windowWidth, windowHeight)//, geometryPass(assets), debugPass(assets), ambientLights(assets), directionalLights(assets), huds(assets)
 	{
-		meshResources.load("plane.obj", -1);
-		meshResources.load("monkey.obj", 1);
-		meshResources.load("sphere.obj", 1);
-		meshResources.load("cube.obj", 1);
+		assets->loadMesh("plane.obj", -1);
+		assets->loadMesh("monkey.obj", 1);
+		assets->loadMesh("sphere.obj", 1);
+		assets->loadMesh("cube.obj", 1);
 		
-		shaderResources.load("GeometryPass", specs);
-		shaderResources.load("DirectionalLight", specs);
-		shaderResources.load("AmbientLight", specs);
-		shaderResources.load("DebugDisplay", specs);
+		assets->loadShader("GeometryPass");
+		assets->loadShader("DirectionalLight");
+		assets->loadShader("AmbientLight");
+		assets->loadShader("DebugDisplay");
+		assets->loadShader("HUD");
 		
-		textureResources.load("Warframe0000.jpg");
-		textureResources.load("Warframe0002.jpg");
+		assets->loadTexture("Warframe0000.jpg");
+		assets->loadTexture("Warframe0002.jpg");
 		
-		pass.setShader(shaderResources.getResource("GeometryPass"));
-		debugPass.setShader(shaderResources.getResource("DebugDisplay"));
-		directionalLights.setShader(shaderResources.getResource("DirectionalLight"));
-		ambientLights.setShader(shaderResources.getResource("AmbientLight"));
-		
-		initScreen();
-		
-		directionalLights.addLight(0.5f, Circe::Vec3(1.0f,1.0f,1.0f), Circe::Vec3(1.0f,0.8f,1.0f));
-		ambientLights.addLight(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));
-		
+		geometryPass.init(assets);
+		debugPass.init(assets);
+		directionalLights.init(assets);
+		ambientLights.init(assets);
+		huds.init(assets);
+
+		directionalLights.addEntity(0.5f, Circe::Vec3(1.0f,1.0f,1.0f), Circe::Vec3(1.0f,0.8f,1.0f));
+		ambientLights.addEntity(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));
 	}
 	
 	RenderingEngine::~RenderingEngine()
 	{
-		textureResources.unloadAll();
-		shaderResources.unloadAll();
-		meshResources.unloadAll();
 		CIRCE_INFO("Rendering engine terminated");
 	}
 	
@@ -45,117 +42,42 @@ namespace Medusa
 	{		
 		m_window.update(camera);
 		
-		framebuffer.bindAsRenderTarget();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearDepth(1.0f);
+		/** Geometry pass */
+		framebuffer.bindForWrite();	
+		geometryPass.render(camera);
 		
-		geometryPass();
-		
-		lightingPass();
+		/** Lighting passes */
+		framebuffer.bindForRead();
+		ambientLights.render(camera);
+		directionalLights.render(camera);
 
-		playDebugPass();
+		/** Debug pass */
+		debugPass.render(camera);
+		
+		/** HUD */
+		huds.render(camera);
 		
 		m_window.swapBuffers();
 	}
 	
-	void RenderingEngine::addWorldEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform)
+	void RenderingEngine::addWorldEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform)
 	{
-		entities.push_back(createEntity(meshName, textureName, transform));
+		geometryPass.addEntity(assets->getMesh(meshName, Medusa::TRIANGLE_RENDERING), assets->getTexture(textureName), transform);
 	}
 	
-	void RenderingEngine::addDebugEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform)
+	void RenderingEngine::addDebugEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform)
 	{
-		debugEntities.push_back(createEntity(meshName, transform));
+		debugPass.addEntity(assets->getMesh(meshName, Medusa::WIRE_RENDERING), transform);
+	}
+	
+	void RenderingEngine::addHUDEntity(const std::shared_ptr<Transform<3>> transform, const std::string& texture)
+	{
+		huds.addEntity(assets->getTexture(texture), transform);
 	}
 	
 	bool RenderingEngine::shouldCloseWindow() const
 	{
 		return m_window.shouldClose();
-	}
-	
-	void RenderingEngine::initScreen()
-	{
-		std::shared_ptr<Mesh> screenMesh = make_shared<Mesh>(meshResources.getResource("plane.obj", Medusa::TRIANGLE_RENDERING));
-		std::shared_ptr<Circe::ITransform> screenTransform = std::make_shared<Circe::Transform<3>>();
-		screenEntity = RenderingEntity(screenMesh, screenTransform);
-
-		int textureSlot =0;
-		for(const Texture& gBufferTexture : framebuffer.getTextures())
-		{
-			screenEntity.setTexture(TextureType(textureSlot), gBufferTexture);
-			textureSlot++;
-		}
-	}
-	
-	void RenderingEngine::geometryPass()
-	{
-		glDepthMask(true);
-		pass.bind();
-		
-		for(shared_ptr<RenderingEntity> entity : entities)
-		{
-			//TODO remove entities based on bool result of pass.render(...)
-			if(entity->update(camera.getProjectionMatrix(), camera.getViewMatrix())){
-				pass.render(*entity);
-			}
-		}
-		
-		pass.unbind();
-		glDepthMask(false);
-	}
-
-	void RenderingEngine::lightingPass()
-	{
-		framebuffer.read();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glDepthMask(false);
-		glDisable(GL_DEPTH_TEST);
-		
-		
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		ambientLights.render(screenEntity);
-		directionalLights.render(screenEntity);
-		
-		glDepthMask(true);
-		glEnable(GL_DEPTH_TEST);
-		
-		glDisable(GL_BLEND);	
-		
-	}
-	
-	void RenderingEngine::playDebugPass()
-	{
-		framebuffer.copyDepth();
-		debugPass.bind();
-		glDepthMask(false);
-		
-		for(shared_ptr<RenderingEntity> entity : debugEntities)
-		{
-			if(entity->update(camera.getProjectionMatrix(), camera.getViewMatrix())){
-				entity->setUniform<Circe::Vec3>("objectColor", Circe::Vec3(0.5f, 1.0f, 1.0f));
-				debugPass.render(*entity);
-			}
-		}
-		glDepthMask(true);
-		
-		debugPass.unbind();
-	}
-	
-	std::shared_ptr<RenderingEntity> RenderingEngine::createEntity(const std::string& meshName, const std::shared_ptr<ITransform>& transform)
-	{
-		shared_ptr<Mesh> mesh = make_shared<Mesh>(meshResources.getResource(meshName, Medusa::TRIANGLE_RENDERING));
-		shared_ptr<RenderingEntity> entity = make_shared<RenderingEntity>(mesh, transform);
-		return entity;
-	}
-	
-	std::shared_ptr<RenderingEntity> RenderingEngine::createEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<ITransform>& transform)
-	{
-		shared_ptr<RenderingEntity> entity = createEntity(meshName, transform);
-		entity->setTexture(TextureType::COLOR, textureResources.getResource(textureName));
-		return entity;
 	}
 	
 	Mouse& RenderingEngine::getMouse()

@@ -8,6 +8,22 @@
 
 namespace Medusa
 {
+	int TextureSlot(const std::string& name)
+	{
+		if(name == "diffuse0")
+		{
+			return (int)(TextureType::DIFFUSE0);
+		}
+		else if(name == "normalMap")
+		{
+			return (int)(TextureType::NORMAL);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	
 	/**		class Texture		**/
 	Texture::Texture()
 	{}
@@ -15,9 +31,9 @@ namespace Medusa
 	Texture::Texture(TextureData& data, const int& textureSlot): ResourceHandle(data), m_textureSlot(textureSlot)
 	{}
 	
-	void Texture::read(const int& location) const
+	void Texture::read() const
 	{
-		m_resource->activate(location, m_textureSlot);
+		m_resource->activate(m_textureSlot);
 		m_resource->bind();	
 	}
 	
@@ -30,9 +46,8 @@ namespace Medusa
 	TextureData::TextureData(const int& width, const int& height):width(width), height(height)
 	{}
 	
-	void TextureData::activate(const int& location, const int& textureSlot)
+	void TextureData::activate(const int& textureSlot)
 	{
-		//glUniform1i(location, textureSlot);
 		glActiveTexture(GL_TEXTURE0+textureSlot);
 	}
 	
@@ -80,8 +95,8 @@ namespace Medusa
 		glGenTextures(1, &textureId);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		
@@ -143,20 +158,20 @@ namespace Medusa
 	
 	/**		class FrameBuffer		**/
 	
-	FrameBuffer::FrameBuffer(const int& width, const int& height):width(width), height(height), gBufferTextures("")
+	FrameBuffer::FrameBuffer(const int& width, const int& height):width(width), height(height), textureManager("")
 	{
 		
 		glGenFramebuffers(1, &fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		
 		//Setting up the targets
-		textures.push_back("gColor");
-		textures.push_back("gNormal");
+		
+		textureManager.load("diffuse0", width, height);
+		textureManager.load("normalMap", width, height);
+		
+		textures.push_back(textureManager.getResource("diffuse0", 0));
+		textures.push_back(textureManager.getResource("normalMap", 1));
 
-		for(std::string textureName : textures)
-		{
-			gBufferTextures.load(textureName, width, height);
-		}
 		unsigned int att[textures.size()] =  {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 		glDrawBuffers(textures.size(), att);
 		
@@ -181,18 +196,28 @@ namespace Medusa
 	
 	FrameBuffer::~FrameBuffer()
 	{
-		gBufferTextures.unloadAll();
+		textureManager.unloadAll();
 		glDeleteFramebuffers(1, &fbo);
 	}
 	
-	void FrameBuffer::bindAsRenderTarget()
+	void FrameBuffer::bindForWrite()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearDepth(1.0f);
 	}
 	
-	void FrameBuffer::read()
+	void FrameBuffer::bindForRead()
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);	
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		for(Texture texture : textures)
+		{
+			texture.read();
+		}
+		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		copyDepth();
 	}
 	
 	void FrameBuffer::copyDepth()
@@ -201,16 +226,5 @@ namespace Medusa
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-	
-	std::vector<Texture> FrameBuffer::getTextures()
-	{
-		std::vector<Texture> res;
-		int index = 0;
-		for(std::string textureName : textures)
-		{
-			res.push_back(gBufferTextures.getResource(textureName, index++));
-		}
-		return res;
 	}
 }
