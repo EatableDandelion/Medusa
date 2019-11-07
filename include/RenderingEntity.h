@@ -39,12 +39,15 @@ namespace Medusa
 
 			void attachTo(const std::shared_ptr<Transform<3>>& parentTransform);
 			
+			void setVisibility(const bool& visibility);
+			
 		private:
 			Mesh m_mesh;
 			weak_ptr<Transform<3>> m_transform;
 			shared_ptr<Material> material;
 			static int allid;
-			int id;		
+			int id;
+			bool visible;
 			
 			Mat<4> getTransformMatrix() const;	
 	};

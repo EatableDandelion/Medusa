@@ -42,28 +42,28 @@ namespace Medusa
 			PointLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
 	};*/
 	
-	class DirectionalLightPass : public RenderingPass<DirectionalLightPass>
+	class DirectionalLightPass : public RenderingPass<DirectionalLight>
 	{
 		public:
 			DirectionalLightPass();
 		
 			void bind();
 		
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+			void updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera);
 		
 			void unbind();
 		
 			void addEntity(const float& intensity, const Circe::Vec<3>& color, const Circe::Vec<3>& direction);
 	};
 	
-	class AmbientLightPass : public RenderingPass<AmbientLightPass>
+	class AmbientLightPass : public RenderingPass<AmbientLight>
 	{
 		public:
 			AmbientLightPass();
 		
 			void bind();
 		
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+			void updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera);
 		
 			void unbind();
 		

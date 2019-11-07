@@ -22,6 +22,8 @@ namespace Medusa
 		
 		assets->loadTexture("Warframe0000.jpg");
 		assets->loadTexture("Warframe0002.jpg");
+		assets->loadTexture("font.png");
+		assets->loadTexture("blockIso.png");
 		
 		geometryPass.init(assets);
 		debugPass.init(assets);
@@ -70,9 +72,14 @@ namespace Medusa
 		debugPass.addEntity(assets->getMesh(meshName, Medusa::WIRE_RENDERING), transform);
 	}
 	
-	void RenderingEngine::addHUDEntity(const std::shared_ptr<Transform<3>> transform, const std::string& texture)
+	void RenderingEngine::addHUDPanel(const std::shared_ptr<Transform<3>> transform, const std::string& texture)
 	{
-		huds.addEntity(assets->getTexture(texture), transform);
+		huds.addPanel(assets->getTexture(texture), transform);
+	}
+	
+	Label RenderingEngine::addHUDLabel(const std::shared_ptr<Transform<3>> transform, const std::string& texture, const int& length)
+	{
+		return huds.addLabel(assets->getTexture(texture), transform, length);
 	}
 	
 	bool RenderingEngine::shouldCloseWindow() const

@@ -30,7 +30,9 @@ namespace Medusa
 			
 			void addDebugEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform);
 			
-			void addHUDEntity(const std::shared_ptr<Transform<3>> transform, const std::string& texture);
+			void addHUDPanel(const std::shared_ptr<Transform<3>> transform, const std::string& texture);
+			
+			Label addHUDLabel(const std::shared_ptr<Transform<3>> transform, const std::string& texture, const int& length);
 			
 			bool shouldCloseWindow() const;
 			

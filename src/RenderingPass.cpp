@@ -16,14 +16,6 @@ namespace Medusa{
 	
 	void GeometryPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
 	{
-		/*Mat<4> projectionMatrix = camera.getProjectionMatrix();
-		Mat<4> viewMatrix = camera.getViewMatrix();
-		
-		Mat<4> m = entity->getTransformMatrix();
-		Mat<4> mv = viewMatrix*m;
-			
-		entity->setUniform("MVP", projectionMatrix*mv);
-		entity->setUniform("Model", m);*/
 		entity->updateModel();
 		entity->updateMVP(camera.getProjectionMatrix()*camera.getViewMatrix());
 	}
@@ -36,7 +28,7 @@ namespace Medusa{
 	
 	void GeometryPass::addEntity(const Mesh& mesh, const Texture& texture, const std::shared_ptr<Transform<3>>& transform)
 	{
-		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity<RenderingEntity>(mesh, transform);
+		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity(mesh, transform);
 		entity->setTexture(TextureType::DIFFUSE0, texture);
 	}
 
@@ -61,6 +53,6 @@ namespace Medusa{
 	
 	void DebugPass::addEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform)
 	{
-		RenderingPass::createEntity<RenderingEntity>(mesh, transform);
+		RenderingPass::createEntity(mesh, transform);
 	}
 }

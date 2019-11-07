@@ -56,7 +56,7 @@ namespace Medusa
 		glBlendFunc(GL_ONE, GL_ONE);
 	}
 	
-	void DirectionalLightPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	void DirectionalLightPass::updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera)
 	{}
 	
 	void DirectionalLightPass::unbind()
@@ -69,7 +69,7 @@ namespace Medusa
 	void DirectionalLightPass::addEntity(const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction)
 	{
 		Mesh screenMesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
-		RenderingPass::createEntity<DirectionalLight>(screenMesh, intensity, color, direction);
+		RenderingPass::createEntity(screenMesh, intensity, color, direction);
 	}
 	
 	AmbientLightPass::AmbientLightPass():RenderingPass("AmbientLight")
@@ -83,7 +83,7 @@ namespace Medusa
 		glBlendFunc(GL_ONE, GL_ONE);
 	}
 
-	void AmbientLightPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	void AmbientLightPass::updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera)
 	{}
 	
 	void AmbientLightPass::unbind()
@@ -96,7 +96,7 @@ namespace Medusa
 	void AmbientLightPass::addEntity(const float& intensity, const Circe::Vec3& color)
 	{
 		Mesh screenMesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
-		RenderingPass::createEntity<AmbientLight>(screenMesh, intensity, color);
+		RenderingPass::createEntity(screenMesh, intensity, color);
 	}
 	
 	/*

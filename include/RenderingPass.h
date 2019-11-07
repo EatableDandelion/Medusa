@@ -8,12 +8,13 @@
 
 namespace Medusa
 {
-	
 	class IRenderingPass
-	{
+	{	
 		virtual void render(const Camera& camera) = 0;
+		virtual void init(const std::shared_ptr<Assets>& assets) = 0;
 	};
 	
+	template<typename EntityType>
 	class RenderingPass : IRenderingPass
 	{
 		public:
@@ -32,22 +33,16 @@ namespace Medusa
 				CIRCE_INFO("Terminating rendering pass.");
 			}
 			
-			virtual void bind() = 0
-			{
-				static_cast<DerivedClass*>(this)->bind();
-			}			
+			virtual void bind()
+			{}			
 			
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
-			{
-				static_cast<DerivedClass*>(this)->updateEntity(entity, camera);
-			}
+			virtual void updateEntity(std::shared_ptr<EntityType>& entity, const Camera& camera)
+			{}
 			
-			void unbind()
-			{
-				static_cast<DerivedClass*>(this)->unbind();
-			}
+			virtual void unbind()
+			{}
 			
-			void render(const std::shared_ptr<RenderingEntity>& entity)
+			void render(const std::shared_ptr<EntityType>& entity)
 			{
 				m_shader->update(entity->getMaterial());
 				entity->draw(1);
@@ -57,7 +52,7 @@ namespace Medusa
 			{
 				m_shader->bind();
 				bind();
-				for(std::shared_ptr<RenderingEntity>& entity : entities)
+				for(std::shared_ptr<EntityType>& entity : entities)
 				{
 					updateEntity(entity, camera);
 					render(entity);
@@ -71,7 +66,7 @@ namespace Medusa
 				m_shader=shader;
 			}
 			
-			template<typename EntityType, typename... Args>
+			template<typename... Args>
 			shared_ptr<EntityType> createEntity(const Mesh& mesh, Args... args)
 			{
 				std::shared_ptr<EntityType> entity = make_shared<EntityType>(mesh, std::forward<Args>(args)...);
@@ -79,13 +74,12 @@ namespace Medusa
 				return entity;
 			}
 			
-			void init(const std::shared_ptr<Assets>& assets)
+			virtual void init(const std::shared_ptr<Assets>& assets)
 			{
 				m_shader = assets->getShader(shaderName);
 				m_assets = assets;
 			}
 			
-		protected:
 			std::shared_ptr<Assets> getAssets()
 			{
 				return m_assets;
@@ -93,12 +87,12 @@ namespace Medusa
 			
 		private:
 			Shader m_shader;
-			std::vector<shared_ptr<RenderingEntity>> entities;
+			std::vector<shared_ptr<EntityType>> entities;
 			std::string shaderName;	
 			std::shared_ptr<Assets> m_assets;			
 	};
 	
-	class GeometryPass : public RenderingPass<GeometryPass>
+	class GeometryPass : public RenderingPass<RenderingEntity>
 	{
 		public:
 			GeometryPass();
@@ -112,7 +106,7 @@ namespace Medusa
 			void addEntity(const Mesh& mesh, const Texture& texture, const std::shared_ptr<Transform<3>>& transform);	
 	};
 	
-	class DebugPass : public RenderingPass<DebugPass>
+	class DebugPass : public RenderingPass<RenderingEntity>
 	{
 		public:
 			DebugPass();

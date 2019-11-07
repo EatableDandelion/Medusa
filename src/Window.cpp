@@ -127,7 +127,6 @@ namespace Medusa
 	void GLFWWindow::update(Camera& camera)
 	{
 		//Update window size if necessary
-		
 		glfwGetFramebufferSize(glfwWindow, &width, &height);
 		glViewport(0, 0, width, height);
 		camera.update(width, height);

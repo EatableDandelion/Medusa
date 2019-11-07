@@ -5,12 +5,12 @@ namespace Medusa
 {	
 	int RenderingEntity::allid=0;
 	
-	RenderingEntity::RenderingEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform):m_mesh(mesh), m_transform(weak_ptr<Transform<3>>(transform)), material(make_shared<Material>()), id(allid++)
+	RenderingEntity::RenderingEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform):m_mesh(mesh), m_transform(weak_ptr<Transform<3>>(transform)), material(make_shared<Material>()), id(allid++), visible(true)
 	{
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
 	
-	RenderingEntity::RenderingEntity(const Mesh& mesh): m_mesh(mesh), material(make_shared<Material>()), m_transform(std::make_shared<Circe::Transform<3>>()), id(allid++)
+	RenderingEntity::RenderingEntity(const Mesh& mesh): m_mesh(mesh), material(make_shared<Material>()), m_transform(std::make_shared<Circe::Transform<3>>()), id(allid++), visible(true)
 	{
 		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
@@ -32,7 +32,10 @@ namespace Medusa
 	
 	void RenderingEntity::draw(const int& culling)
 	{
-		m_mesh.draw(culling);
+		if(visible)
+		{
+			m_mesh.draw(culling);
+		}
 	}
 	
 	void RenderingEntity::setTexture(const TextureType& type, const Texture& texture)
@@ -43,6 +46,11 @@ namespace Medusa
 	std::shared_ptr<Material> RenderingEntity::getMaterial() const
 	{
 		return material;
+	}
+	
+	void RenderingEntity::setVisibility(const bool& visibility)
+	{
+		visible = visibility;
 	}
 	
 	Mat<4> RenderingEntity::getTransformMatrix() const

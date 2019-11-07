@@ -16,8 +16,8 @@ int main(void)
 	/**
 	TODO:
 	Integration with Rosie
-	HUD renderer
-	Input
+	GUI
+	Make it more Java Swing like: inherit window to use
 	*/
 	
 	CIRCE_INITPROFILER;
@@ -38,8 +38,8 @@ int main(void)
 	engine.addWorldEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	engine.addDebugEntity("sphere.obj", transform3);
 	engine.addDebugEntity("sphere.obj", transform4);
-	engine.addHUDEntity(transform5, "Warframe0002.jpg");
-	
+	Label label = engine.addHUDLabel(transform5, "font.png", 5);
+	label.setText("Test");
 	Camera cam = engine.getCamera();
 	
 	engine.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
@@ -71,10 +71,9 @@ int main(void)
 		t1 = high_resolution_clock::now(); 
 		
 		engine.draw();
-		//transform2->rotate(0.01f, 0.01f, 0.0f);
-		
-		std::cout << "\r" << "Execution time: " << (duration_cast<milliseconds>(high_resolution_clock::now() - t0)).count()/1000.0 << " s           " << std::flush;
-		
+		double execTime = (duration_cast<milliseconds>(high_resolution_clock::now() - t0)).count()/1000.0;
+		std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
+		label.setText(std::to_string(execTime));
 		t2 = high_resolution_clock::now();
 		auto dt = duration_cast<milliseconds>(t2 - t1);
 		while(dt.count()<16 && !engine.shouldCloseWindow()){

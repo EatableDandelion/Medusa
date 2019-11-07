@@ -4,44 +4,88 @@
 
 namespace Medusa
 {
-	class HUDComponent : public RenderingEntity
+	class Panel : public RenderingEntity
 	{
 		public:
-			HUDComponent(const Mesh& mesh, const shared_ptr<Transform<3>>& transform);			
+			Panel(const Mesh& mesh, const shared_ptr<Transform<3>>& transform);			
 	};
 	
-	class HUDLabel : public HUDComponent
+	class Label
 	{
 		public:
-			HUDLabel(const Mesh& mesh, const shared_ptr<Transform<3>>& transform, const std::string& lable, const int& maxNbChar);
-		
-			void setLabel(const std::string& label);
+			Label(const shared_ptr<Transform<3>>& transform);
 			
-			virtual void draw(const int& culling);
-		
+			void addCharacter(const std::shared_ptr<Panel>& letter);
+			
+			std::shared_ptr<Transform<3>> newSubTransform();
+			
+			void setText(const std::string& text);
+			
 		private:
-			int nbChar;
-			std::string label;
-			shared_ptr<Transform<3>> transform;
+			weak_ptr<Transform<3>> m_transform;
+			std::vector<std::shared_ptr<Transform<3>>> transforms;
+			std::vector<std::shared_ptr<Panel>> letters;
 	};
 	
-	
-	class HUDPass : public RenderingPass<HUDPass>
+	class Button
 	{
 		public:
-			HUDPass();
+			Button(const shared_ptr<Transform<3>>& transform);
 			
-			void bind();
-			
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
-			
-			void unbind();
-			
-			void addEntity(const Texture& texture, const shared_ptr<Transform<3>>& transform);
-	
-			void addLabel(const Texture& texture, const shared_ptr<Transform<3>>& transform);
+		private:
+			weak_ptr<Transform<3>> m_transform;
 	};
 
 	
+	class HUDPanelPass : public RenderingPass<Panel>
+	{
+		public:
+			HUDPanelPass();
+			
+			void bind();
+			
+			void updateEntity(std::shared_ptr<Panel>& entity, const Camera& camera);
+			
+			void unbind();
+			
+			void addEntity(const Texture& texture, const shared_ptr<Transform<3>>& transform);	
+	};
+	
+	class HUDLabelPass
+	{
+		public:
+			void render(const Camera& camera);
+			
+			void bind();
+			
+			void unbind();
+			
+			void init(const std::shared_ptr<Assets>& assets);
+			
+			Label addLabel(const Texture& texture, const shared_ptr<Transform<3>>& transform, const int& maxNbChar);
+		
+			void setLabel(const int& labelIndex, const std::string& text);
+		
+		private:		
+			HUDPanelPass panelPass;
+	};
+
+	class HUDPass : public IRenderingPass
+	{
+		public:
+			virtual void render(const Camera& camera);
+			
+			virtual void init(const std::shared_ptr<Assets>& assets);
+			
+			void addPanel(const Texture& texture, const shared_ptr<Transform<3>>& transform);
+			
+			Label addLabel(const Texture& texture, const shared_ptr<Transform<3>>& transform, const int& length);
+			
+			Button addButton(const Texture& texture, const shared_ptr<Transform<3>>& transform);
+			
+		private:
+			HUDPanelPass panels;
+			HUDLabelPass labels;
+	};
 	
 }

@@ -103,7 +103,7 @@ namespace Medusa
 		
 		
 		int width, height, nbChannels;
-		unsigned char* data = stbi_load((folderLocation+fileName).c_str(), &width, &height, &nbChannels, 0);
+		unsigned char* data = stbi_load((folderLocation+fileName).c_str(), &width, &height, &nbChannels, STBI_rgb);
 		if (data)
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
