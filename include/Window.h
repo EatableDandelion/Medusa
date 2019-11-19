@@ -5,6 +5,8 @@
 #include "Camera.h"
 #include <Circe/Circe.h>
 #include "Input.h"
+#include "RenderingEngine.h"
+#include "GUI.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -19,10 +21,12 @@ namespace Medusa
 			virtual ~IWindow();
 						
 			virtual int init()=0;
-			virtual void update(Camera& camera)=0;
+			virtual void update()=0;
 			virtual bool shouldClose() const=0;
 			virtual void terminate()=0;
 			virtual void swapBuffers()=0;
+			
+			void refresh();
 			
 			Keyboard& getKeyboard();
 			Mouse& getMouse();
@@ -53,9 +57,9 @@ namespace Medusa
 				return window.init();
 			}
 			
-			void update(Camera& camera)
+			void update()
 			{
-				window.update(camera);
+				window.update();
 			}
 			
 			bool shouldClose() const
@@ -93,7 +97,7 @@ namespace Medusa
 		public:
 			GLFWWindow(const int& width, const int& height, const char* title);
 			virtual int init();
-			virtual void update(Camera& camera);
+			virtual void update();
 			virtual bool shouldClose() const;
 			virtual void terminate();
 			virtual void swapBuffers();
@@ -106,9 +110,8 @@ namespace Medusa
 	{
 		public:
 			SDLWindow(const int& width, const int& height, const char* title);
-			//~SDLWindow();
 			virtual int init();
-			virtual void update(Camera& camera);
+			virtual void update();
 			virtual bool shouldClose() const;
 			virtual void terminate();
 			virtual void swapBuffers();

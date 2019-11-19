@@ -191,7 +191,6 @@ namespace Medusa
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		CIRCE_INFO("FrameBuffer initialized.");
 		
-		
 	}
 	
 	FrameBuffer::~FrameBuffer()
@@ -215,7 +214,7 @@ namespace Medusa
 		{
 			texture.read();
 		}
-		
+		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		copyDepth();
 	}

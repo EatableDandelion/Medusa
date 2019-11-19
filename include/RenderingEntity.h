@@ -41,6 +41,10 @@ namespace Medusa
 			
 			void setVisibility(const bool& visibility);
 			
+			int getId() const;
+			
+			void setTransform(const std::shared_ptr<Transform<3>>& transform);
+			
 		private:
 			Mesh m_mesh;
 			weak_ptr<Transform<3>> m_transform;
@@ -60,5 +64,77 @@ namespace Medusa
 			void unload(RenderingEntity& entity);
 		private:
 			void loadComponent(const std::string& type, const std::string& value);
+	};
+	
+	template<typename T> 
+	class RenderingCollection;
+	
+	template<typename T>
+	class RenderingIterator
+	{
+		public:
+			RenderingIterator(RenderingCollection<T>& collection, const int& startIndex):collection(collection), index(startIndex)
+			{}
+			
+			RenderingIterator<T> operator++()
+			{
+				index++;
+				return *this;
+			}
+			
+			bool operator!=(const RenderingIterator& other) const
+			{
+				return index != other.index;
+			}
+			
+			std::shared_ptr<T>& operator*()
+			{
+				return collection.entities[index];
+			}
+			
+			int getIndex() const
+			{
+				return index;
+			}
+			
+		private:
+			int index;
+			RenderingCollection<T>& collection;
+	};
+	
+	
+	template<typename T>
+	class RenderingCollection
+	{
+		public:
+			int add(std::shared_ptr<T>& entity)
+			{
+				entities.push_back(std::move(entity));
+				return entities.size() - 1;
+			}
+			
+			std::shared_ptr<T> get(const int& id)
+			{
+				return entities[id];
+			}
+			
+			RenderingIterator<T> begin()
+			{
+				return RenderingIterator<T>(*this, 0);
+			}
+			
+			RenderingIterator<T> end()
+			{
+				return RenderingIterator<T>(*this, entities.size());
+			}	
+			
+			std::shared_ptr<T> get(const RenderingIterator<T>& iterator)
+			{
+				return entities[iterator.getIndex()];
+			}
+		
+		private:
+			std::vector<std::shared_ptr<T>> entities;
+			friend class RenderingIterator<T>;
 	};
 }

@@ -10,7 +10,7 @@ namespace Medusa
 	class Assets
 	{
 		public:
-			Assets(const std::string& meshFolder, const std::string& textureFolder, const std::string& shaderFolder, const VertexSpecs& specs);
+			Assets(const std::string& meshFolder, const std::string& textureFolder, const std::string& shaderFolder, const VertexSpecs& specs = {Attribute("position", 0, 3), Attribute("normal", 1, 3), Attribute("textCoords", 2, 2)});
 		
 			~Assets();
 		

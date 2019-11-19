@@ -1,9 +1,9 @@
 #include <Circe/Circe.h>
 #include <chrono>
-#include "RenderingEngine.h"
+#include <ratio>
+#include <ctime>
+#include "Window.h"
 #include "TestECS.h"
-
-
 
 
 using namespace Medusa;
@@ -16,14 +16,59 @@ int main(void)
 	/**
 	TODO:
 	Integration with Rosie
+	Pass abstraction?
 	GUI
-	Make it more Java Swing like: inherit window to use
 	*/
 	
 	CIRCE_INITPROFILER;
 	
 	high_resolution_clock::time_point t0, t1, t2;
-	t0 = high_resolution_clock::now(); 
+	t0 = high_resolution_clock::now();
+	
+	
+	GLFWWindow window(600, 400, "Test");
+	
+	
+	std::shared_ptr<Assets> assets = std::make_shared<Assets>("../../Resource/Mesh/", "../../Resource/Texture/", "../../Resource/Shader/");
+	assets->loadMesh("plane.obj", -1);
+	assets->loadMesh("monkey.obj", 1);
+	assets->loadMesh("sphere.obj", 1);
+	assets->loadMesh("cube.obj", 1);
+	
+	assets->loadShader("GeometryPass");
+	assets->loadShader("DirectionalLight");
+	assets->loadShader("AmbientLight");
+	assets->loadShader("DebugDisplay");
+	assets->loadShader("HUD");
+	
+	assets->loadTexture("Warframe0000.jpg");
+	assets->loadTexture("Warframe0002.jpg");
+	assets->loadTexture("font.png");
+	assets->loadTexture("blockIso.png");
+	
+	std::shared_ptr<GeometryPass> geometryPass = std::make_shared<GeometryPass>();
+	
+	std::shared_ptr<AmbientLightPass> ambientLights = std::make_shared<AmbientLightPass>();
+	std::shared_ptr<DirectionalLightPass> directionalLights = std::make_shared<DirectionalLightPass>();	
+	std::shared_ptr<DebugPass> debugPass = std::make_shared<DebugPass>();
+	std::shared_ptr<HUDPass> hudPass = std::make_shared<HUDPass>();
+	
+	
+	debugPass->addNext(hudPass);
+	directionalLights->addNext(debugPass);
+	ambientLights->addNext(directionalLights);
+	
+	
+	geometryPass->init(assets);
+	debugPass->init(assets);
+	directionalLights->init(assets);
+	ambientLights->init(assets);
+	hudPass->init(assets);
+	
+	RenderingEngine engine(geometryPass, ambientLights, window.getWidth(), window.getHeight());
+	
+	GUI gui(hudPass);
+	
 	
 	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform2(make_shared<Transform<3>>());
@@ -32,22 +77,26 @@ int main(void)
 	shared_ptr<Transform<3>> transform5(make_shared<Transform<3>>());
 	
 	transform2->setFrameRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
-
-	RenderingEngine engine(600, 400);
-	engine.addWorldEntity("plane.obj", "Warframe0000.jpg", transform1);
-	engine.addWorldEntity("monkey.obj", "Warframe0002.jpg", transform2);
-	engine.addDebugEntity("sphere.obj", transform3);
-	engine.addDebugEntity("sphere.obj", transform4);
-	Label label = engine.addHUDLabel(transform5, "font.png", 5);
+	
+	
+	directionalLights->addEntity(0.5f, Circe::Vec3(1.0f,1.0f,1.0f), Circe::Vec3(1.0f,0.8f,1.0f));
+	ambientLights->addEntity(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));	
+	
+	geometryPass->addEntity("plane.obj", "Warframe0000.jpg", transform1);
+	geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
+	debugPass->addEntity("sphere.obj", transform3);
+	debugPass->addEntity("sphere.obj", transform4);
+	Label label = gui.addLabel(4, "font.png", Circe::Vec2(0.5f, 0.5f), Circe::Vec2(0.1f, 0.1f));
 	label.setText("Test");
 	Camera cam = engine.getCamera();
 	
-	engine.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
-	engine.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
-	engine.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, 0.1f);}});
+	window.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
+	window.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
+	window.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
+	window.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
+	window.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, 0.1f);}});
 
+	
 
 	EntityLoader test;
 	test.load("../../Resource/Model/", "monkey.mod");
@@ -64,22 +113,32 @@ int main(void)
 	//transform5->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.50f, 0.50f, 0.0f));
 
 	std::cout << std::endl;
-	while(!engine.shouldCloseWindow())
+	while(!window.shouldClose())
 	{	
 		CIRCE_PROFILEBLOCK;
+			t1 = high_resolution_clock::now(); 
+			{CIRCE_PROFILEBLOCK;		
+				engine.draw(window.getWidth(), window.getHeight());
+				window.refresh();
+			}
+			
+			{CIRCE_PROFILEBLOCK;		
+				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
+				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
+				label.setText(std::to_string(execTime));
+			}	
+				
+			{CIRCE_PROFILEBLOCK;
+				t2 = high_resolution_clock::now();
+				duration<double> dt = duration_cast<duration<double>>(t2 - t1);
+				int t = 0;
+				while(dt.count()<0.016 && !window.shouldClose() && t<200){
+					t2 = high_resolution_clock::now();
+					dt = duration_cast<duration<double>>(t2 - t1);
+					t++;
+				}
+			}
 		
-		t1 = high_resolution_clock::now(); 
-		
-		engine.draw();
-		double execTime = (duration_cast<milliseconds>(high_resolution_clock::now() - t0)).count()/1000.0;
-		std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
-		label.setText(std::to_string(execTime));
-		t2 = high_resolution_clock::now();
-		auto dt = duration_cast<milliseconds>(t2 - t1);
-		while(dt.count()<16 && !engine.shouldCloseWindow()){
-			t2 = high_resolution_clock::now();
-			dt = duration_cast<milliseconds>(t2 - t1);
-		}
 		
     }
 	std::cout << std::endl;

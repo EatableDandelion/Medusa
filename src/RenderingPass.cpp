@@ -2,17 +2,129 @@
 
 #include <iostream>
 
-namespace Medusa{
-	
-	GeometryPass::GeometryPass():RenderingPass("GeometryPass")
+namespace Medusa
+{
+
+	IPassSettings::IPassSettings(const bool& blending, const bool& depthRead, const bool& depthWrite):blending(blending), depthRead(depthRead), depthWrite(depthWrite)
 	{}
 	
-	void GeometryPass::bind()
+	void IPassSettings::setBlending(const bool& activate)
 	{
-		glDepthMask(true);
+		blending = activate;
+	}
+		
+	void IPassSettings::setDepthRead(const bool& activate)
+	{
+		depthRead = activate;
+	}
+			
+	void IPassSettings::setDepthWrite(const bool& activate)
+	{
+		depthWrite = activate;
+	}
+	
+	void IPassSettings::start()
+	{
+		if(blending)
+		{
+			startBlending();
+		}
+		if(depthRead)
+		{
+			startDepthRead();
+		}
+		if(depthWrite)
+		{
+			startDepthWrite();
+		}
+	}
+			
+	void IPassSettings::end()
+	{
+		if(depthRead)
+		{
+			stopDepthRead();
+		}
+		if(depthWrite)
+		{
+			stopDepthWrite();
+		}
+		if(blending)
+		{
+			stopBlending();
+		}		
+	}
+	
+	GLPassSettings::GLPassSettings(const bool& blending, const bool& depthRead, const bool& depthWrite):IPassSettings(blending, depthRead, depthWrite)
+	{}
+	
+	void GLPassSettings::startBlending()
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_DST_ALPHA);
+	}
+	
+	void GLPassSettings::stopBlending()
+	{
+		glDisable(GL_BLEND);
+	}
+	
+	void GLPassSettings::startDepthRead()
+	{
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 	}
+	
+	void GLPassSettings::stopDepthRead()
+	{
+		glDisable(GL_DEPTH_TEST);
+	}
+	
+	void GLPassSettings::startDepthWrite()
+	{
+		glDepthMask(true);
+	}
+	
+	void GLPassSettings::stopDepthWrite()
+	{
+		glDepthMask(false);
+	}
+	
+	
+	void IRenderingPass::renderAll(const Camera& camera)
+	{
+		render(camera);
+		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		{
+			next->renderAll(camera);
+		}
+	}
+	
+	void IRenderingPass::addNext(const std::shared_ptr<IRenderingPass>& nextPass)
+	{
+		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		{
+			nextPass->addNext(next);
+			m_next = nextPass;
+		}
+		else
+		{
+			m_next = nextPass;
+		}
+	}
+	
+	std::shared_ptr<RenderingEntity> IRenderingPass::addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform)
+	{
+		return NULL;
+	}
+	
+	std::shared_ptr<RenderingEntity> IRenderingPass::addEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform)
+	{
+		return NULL;
+	}
+	
+	GeometryPass::GeometryPass():RenderingPass("GeometryPass", false, true, true)
+	{}
 	
 	void GeometryPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
 	{
@@ -20,24 +132,16 @@ namespace Medusa{
 		entity->updateMVP(camera.getProjectionMatrix()*camera.getViewMatrix());
 	}
 	
-	void GeometryPass::unbind()
+	std::shared_ptr<RenderingEntity> GeometryPass::addEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform<3>>& transform)
 	{
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(false);
-	}
-	
-	void GeometryPass::addEntity(const Mesh& mesh, const Texture& texture, const std::shared_ptr<Transform<3>>& transform)
-	{
-		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity(mesh, transform);
-		entity->setTexture(TextureType::DIFFUSE0, texture);
+		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity(RenderingPass::getAssets()->getMesh(mesh, Medusa::TRIANGLE_RENDERING), transform);
+		entity->setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
+		return entity;
 	}
 
-	DebugPass::DebugPass():RenderingPass("DebugDisplay")
-	{}
-	
-	void DebugPass::bind()
+	DebugPass::DebugPass():RenderingPass("DebugDisplay", false, true, false)
 	{
-		glDepthMask(false);
+		
 	}
 			
 	void DebugPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
@@ -46,13 +150,8 @@ namespace Medusa{
 		geometryPass.updateEntity(entity, camera);
 	}
 	
-	void DebugPass::unbind()
+	std::shared_ptr<RenderingEntity> DebugPass::addEntity(const std::string& mesh, const std::shared_ptr<Transform<3>>& transform)
 	{
-		glDepthMask(true);
-	}
-	
-	void DebugPass::addEntity(const Mesh& mesh, const std::shared_ptr<Transform<3>>& transform)
-	{
-		RenderingPass::createEntity(mesh, transform);
+		return RenderingPass::createEntity(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING), transform);
 	}
 }

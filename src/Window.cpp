@@ -82,6 +82,12 @@ namespace Medusa
 		delete[] title;
 	}
 	
+	void IWindow::refresh()
+	{
+		update();
+		swapBuffers();
+	}
+	
 	GLFWWindow::GLFWWindow(const int& width, const int& height, const char* title):IWindow(width, height, title)
 	{
 		init();
@@ -124,12 +130,11 @@ namespace Medusa
 		return 0;
 	}
 	
-	void GLFWWindow::update(Camera& camera)
+	void GLFWWindow::update()
 	{
 		//Update window size if necessary
 		glfwGetFramebufferSize(glfwWindow, &width, &height);
 		glViewport(0, 0, width, height);
-		camera.update(width, height);
 		
 		glfwPollEvents();
 	}
@@ -154,7 +159,10 @@ namespace Medusa
 	
 	
 	SDLWindow::SDLWindow(const int& width, const int& height, const char* title):IWindow(width, height, title)
-	{}
+	
+	{
+		init();
+	}
 	
 	int SDLWindow::init()
 	{
@@ -193,14 +201,13 @@ namespace Medusa
 		return 0;
 	}
 	
-	void SDLWindow::update(Camera& camera)
+	void SDLWindow::update()
 	{
 		//Update window size if necessary
 		int windowWidth, windowHeight;
 		SDL_GL_GetDrawableSize(sdlWindow, &windowWidth, &windowHeight);
 
 		glViewport(0, 0, windowWidth, windowHeight);
-		camera.update(windowWidth, windowHeight);
 	}
 	
 	bool SDLWindow::shouldClose() const

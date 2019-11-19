@@ -72,6 +72,16 @@ namespace Medusa
 			transform->attachTo(parentTransform);
 		}
 	}
+	
+	int RenderingEntity::getId() const
+	{
+		return id;
+	}
+	
+	void RenderingEntity::setTransform(const std::shared_ptr<Transform<3>>& transform)
+	{
+		m_transform = transform;
+	}
 
 
 	void EntityLoader::load(const std::string& folderLocation, const std::string& fileName)//, RenderingEntity& entity)
@@ -117,7 +127,5 @@ namespace Medusa
 	}
 	
 	void EntityLoader::unload(RenderingEntity& entity)
-	{
-		
-	}
+	{}
 }
