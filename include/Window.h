@@ -32,6 +32,7 @@ namespace Medusa
 			Mouse& getMouse();
 			int getWidth() const;
 			int getHeight() const;
+			virtual void setCursorVisible(const bool& visible) = 0;
 			
 		protected:
 			int width, height;
@@ -101,11 +102,12 @@ namespace Medusa
 			virtual bool shouldClose() const;
 			virtual void terminate();
 			virtual void swapBuffers();
+			void setCursorVisible(const bool& visible);
 			
 		private:
 			GLFWwindow* glfwWindow;
 	};
-	
+	/*
 	class SDLWindow : public IWindow
 	{
 		public:
@@ -120,6 +122,6 @@ namespace Medusa
 			SDL_Window* sdlWindow;
 			SDL_GLContext sdlContext;
 			SDL_Renderer* renderer;
-	};
+	};*/
 	
 }

@@ -58,7 +58,7 @@ namespace Medusa
 	
 	void Label::setText(const std::string& text)
 	{
-		for(int i = 0; i<min(text.length(),characters.size()); i++)
+		for(int i = 0; i<Circe::min<int>(text.length(),characters.size()); i++)
 		{		
 			int c = (int)text[i];
 			characters[i].getEntity()->setVisibility(c != (int)(' '));
@@ -77,8 +77,27 @@ namespace Medusa
 		return characters;
 	}
 	
-	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass):hudPass(hudPass)
+	Button::Button(const Panel& panel):panel(panel), mouseObserver([](Circe::Vec2 oldValue, Circe::Vec2 newValue){})
 	{}
+	
+	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass, const std::shared_ptr<Messenger>& messenger):hudPass(hudPass)
+	{
+		//messenger->addSubscriber(subscriber);
+	}
+	
+	/*void GUI::update()
+	{
+		std::stack<std::shared_ptr<Msg>> msgs = subscriber.collect();
+		while(!msgs.empty())
+		{
+			std::shared_ptr<Msg> msg = msgs.top();
+			msgs.pop();
+			if(msg.type == "mouseclick")
+			{
+				
+			}
+		}
+	}*/
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
 	{
@@ -104,5 +123,17 @@ namespace Medusa
 			return newLabel;
 		}
 		return labels.at(0);
+	}
+
+	Button GUI::addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
+	{
+		if(std::shared_ptr<IRenderingPass> pass = hudPass.lock())
+		{
+			Panel newPanel(position, dimension, pass->addEntity(texture, NULL));
+			Button newButton(newPanel);
+			buttons.push_back(newButton);
+			return newButton;
+		}
+		return buttons.at(0);
 	}	
 }

@@ -3,6 +3,8 @@
 #include <stack>
 #include <functional>
 #include <memory>
+#include <variant>
+#include <Circe/Circe.h>
 
 namespace Medusa
 {
@@ -58,35 +60,45 @@ namespace Medusa
 	};
 	
 	struct Msg
-	{};
+	{
+		typedef std::variant<int, float, bool, std::string, Circe::Vec2, Circe::Vec3> var;
+		public:
+			Msg(const std::string& type);
+			
+			bool isType(const std::string& type) const;
+			
+			void addArgument(const std::string& name, const int& value);
+			
+		private:
+			const std::string m_type;
+			std::unordered_map<std::string, var> arguments;
+	};
+	
+	class Messenger;
 	
 	class Subscriber
 	{
 		public:
-			void post(std::shared_ptr<Msg>& msg);
+			Subscriber(const std::string& msgType, const bool& presort = true);
 		
-			std::stack<std::shared_ptr<Msg>> collect();
+			std::stack<Msg> collect();
 			
 		private:
-			std::stack<std::shared_ptr<Msg>> msgs;
+			friend class Messenger;
+			std::stack<Msg> msgs;
+			const std::string msgType;
+			const bool presort;
+			void post(const Msg& msg);			
 	};
 	
 	class Messenger
 	{
 		public:
-			template<typename T, typename... Args>
-			void publish(Args... args)
-			{
-				std::shared_ptr<T> msg = std::make_shared<msg>(std::forward<Args>(args)...);
-				for(std::shared_ptr<Subscriber> subscriber : subscribers)
-				{
-					subscriber->post(msg);
-				}
-			}
+			void publish(const Msg& msg);
 			
 			void addSubscriber(const Subscriber& subscriber);
 		
 		private:
-			std::vector<std::shared_ptr<Subscriber>> subscribers; 			
+			std::vector<Subscriber> subscribers; 			
 	};
 }

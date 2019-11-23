@@ -47,11 +47,7 @@ namespace Medusa
 		public:
 			DirectionalLightPass();
 		
-			//void bind();
-		
 			void updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera);
-		
-			//void unbind();
 		
 			void addEntity(const float& intensity, const Circe::Vec<3>& color, const Circe::Vec<3>& direction);
 	};
@@ -61,11 +57,7 @@ namespace Medusa
 		public:
 			AmbientLightPass();
 		
-			//void bind();
-		
 			void updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera);
-		
-			//void unbind();
 		
 			void addEntity(const float& intensity, const Circe::Vec<3>& color);
 	};

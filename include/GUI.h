@@ -5,6 +5,7 @@
 #include <stack>
 #include <Circe/Circe.h>
 #include "RenderingPass.h"
+#include "Events.h"
 
 namespace Medusa
 {	
@@ -13,11 +14,7 @@ namespace Medusa
 		public:
 			HUDPass();
 			
-			//void bind();
-			
 			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
-			
-			//void unbind();
 			
 			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& texture, const shared_ptr<Transform<3>>& transform);	
 	};
@@ -54,18 +51,39 @@ namespace Medusa
 			
 	};
 	
+	
+	class Button
+	{
+		public:
+			Button(const Panel& panel);
+			
+			//void listenTo(const Mouse& mouse);
+	
+		private:
+			Panel panel;
+			Observer<Circe::Vec2> mouseObserver;
+			
+			//bool isInBound(const Circe::Vec2& cursorPosition);
+	};
+	
 	class GUI
 	{
 		public:
-			GUI(const std::shared_ptr<IRenderingPass>& hudPass);
+			GUI(const std::shared_ptr<IRenderingPass>& hudPass, const std::shared_ptr<Messenger>& messenger);
+			
+			void update();
 			
 			Panel addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension);
 			
 			Label addLabel(const int& nbChar, const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension);
+			
+			Button addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension);
 					
 		private:
 			std::weak_ptr<IRenderingPass> hudPass;
 			std::vector<Panel> panels;
 			std::vector<Label> labels;
+			std::vector<Button> buttons;
+			std::shared_ptr<Subscriber> subscriber;
 	};
 }

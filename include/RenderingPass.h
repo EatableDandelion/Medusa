@@ -61,6 +61,7 @@ namespace Medusa
 	class IRenderingPass
 	{	
 		public:
+			virtual ~IRenderingPass() = default;
 			void renderAll(const Camera& camera);
 			virtual void render(const Camera& camera) = 0;
 			virtual void init(const std::shared_ptr<Assets>& assets) = 0;

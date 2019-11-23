@@ -41,30 +41,12 @@ namespace Medusa
 	
 	AmbientLight::AmbientLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color):Light(mesh, intensity, color)
 	{}
-	/*
-	PointLight::PointLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color):Light(mesh, intensity, color)
-	{}*/
 	
 	DirectionalLightPass::DirectionalLightPass():RenderingPass("DirectionalLight", true, false, false)
 	{}
 	
-	/*void DirectionalLightPass::bind()
-	{
-		glDepthMask(false);
-		glDisable(GL_DEPTH_TEST);	
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-	}*/
-	
 	void DirectionalLightPass::updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera)
 	{}
-	
-	/*void DirectionalLightPass::unbind()
-	{
-		glDepthMask(true);
-		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_BLEND);	
-	}*/
 	
 	void DirectionalLightPass::addEntity(const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction)
 	{
@@ -74,24 +56,9 @@ namespace Medusa
 	
 	AmbientLightPass::AmbientLightPass():RenderingPass("AmbientLight", true, false, false)
 	{}
-	
-	/*void AmbientLightPass::bind()
-	{
-		glDepthMask(false);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-	}*/
 
 	void AmbientLightPass::updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera)
 	{}
-	
-	/*void AmbientLightPass::unbind()
-	{
-		glDepthMask(true);
-		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_BLEND);
-	}*/
 
 	void AmbientLightPass::addEntity(const float& intensity, const Circe::Vec3& color)
 	{

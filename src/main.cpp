@@ -16,7 +16,6 @@ int main(void)
 	/**
 	TODO:
 	Integration with Rosie
-	Pass abstraction?
 	GUI
 	*/
 	
@@ -27,7 +26,7 @@ int main(void)
 	
 	
 	GLFWWindow window(600, 400, "Test");
-	
+	window.setCursorVisible(true);
 	
 	std::shared_ptr<Assets> assets = std::make_shared<Assets>("../../Resource/Mesh/", "../../Resource/Texture/", "../../Resource/Shader/");
 	assets->loadMesh("plane.obj", -1);
@@ -67,7 +66,7 @@ int main(void)
 	
 	RenderingEngine engine(geometryPass, ambientLights, window.getWidth(), window.getHeight());
 	
-	GUI gui(hudPass);
+	//GUI gui(hudPass);
 	
 	
 	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
@@ -86,8 +85,11 @@ int main(void)
 	geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	debugPass->addEntity("sphere.obj", transform3);
 	debugPass->addEntity("sphere.obj", transform4);
-	Label label = gui.addLabel(4, "font.png", Circe::Vec2(0.5f, 0.5f), Circe::Vec2(0.1f, 0.1f));
+	/*Label label = gui.addLabel(4, "font.png", Circe::Vec2(-0.8f, 0.9f), Circe::Vec2(0.05f, 0.05f));
 	label.setText("Test");
+	
+	Button button = gui.addButton("Warframe0000.jpg", Circe::Vec2(0.0f, 0.0f), Circe::Vec2(0.1f, 0.1f));
+	*/
 	Camera cam = engine.getCamera();
 	
 	window.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
@@ -96,8 +98,12 @@ int main(void)
 	window.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
 	window.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, 0.1f);}});
 
-	
 
+	/*Messenger messenger;
+	std::shared_ptr<Subscriber<MouseClickedMsg>> subscriber = std::make_shared<Subscriber<MouseClickedMsg>>();
+	messenger.addSubscriber(subscriber);
+	messenger.publish<MouseClickedMsg>();
+	*/
 	EntityLoader test;
 	test.load("../../Resource/Model/", "monkey.mod");
 	
@@ -110,7 +116,6 @@ int main(void)
 	transform3->resize(0.1f);
 	transform4->resize(0.1f);
 	transform5->resize(0.1f);
-	//transform5->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.50f, 0.50f, 0.0f));
 
 	std::cout << std::endl;
 	while(!window.shouldClose())
@@ -125,7 +130,7 @@ int main(void)
 			{CIRCE_PROFILEBLOCK;		
 				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
 				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
-				label.setText(std::to_string(execTime));
+			//	label.setText(std::to_string(execTime));
 			}	
 				
 			{CIRCE_PROFILEBLOCK;

@@ -125,7 +125,7 @@ namespace Medusa
 		CIRCE_INFO("GLFW window initialized.");
 		
 		//Hide the cursor:
-		glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		
 		
 		return 0;
 	}
@@ -157,8 +157,20 @@ namespace Medusa
 		CIRCE_INFO("GLFW window terminated.");	
 	}
 	
+	void GLFWWindow::setCursorVisible(const bool& visible)
+	{
+		if(!visible)
+		{
+			glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else
+		{
+			glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
 	
-	SDLWindow::SDLWindow(const int& width, const int& height, const char* title):IWindow(width, height, title)
+	
+	/*SDLWindow::SDLWindow(const int& width, const int& height, const char* title):IWindow(width, height, title)
 	
 	{
 		init();
@@ -231,6 +243,6 @@ namespace Medusa
 		SDL_GL_DeleteContext(sdlContext);
 		SDL_DestroyWindow(sdlWindow);
 		SDL_Quit();
-	}
+	}*/
 	
 }
