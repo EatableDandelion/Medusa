@@ -66,7 +66,8 @@ int main(void)
 	
 	RenderingEngine engine(geometryPass, ambientLights, window.getWidth(), window.getHeight());
 	
-	//GUI gui(hudPass);
+	std::shared_ptr<Messenger> messenger = std::make_shared<Messenger>();
+	GUI gui(hudPass, messenger);
 	
 	
 	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
@@ -92,6 +93,9 @@ int main(void)
 	*/
 	Camera cam = engine.getCamera();
 	
+	
+	
+	window.getKeyboard().addListener(KEYS::KEY_E, [&messenger](bool oldValue, bool newValue){messenger->publish(Msg("mouseclick"));});
 	window.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
 	window.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
 	window.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
@@ -131,6 +135,7 @@ int main(void)
 				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
 				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
 			//	label.setText(std::to_string(execTime));
+				gui.update();
 			}	
 				
 			{CIRCE_PROFILEBLOCK;

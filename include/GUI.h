@@ -69,7 +69,7 @@ namespace Medusa
 	class GUI
 	{
 		public:
-			GUI(const std::shared_ptr<IRenderingPass>& hudPass, const std::shared_ptr<Messenger>& messenger);
+			GUI(const std::shared_ptr<IRenderingPass>& hudPass, std::shared_ptr<Messenger>& messenger);
 			
 			void update();
 			

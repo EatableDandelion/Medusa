@@ -19,29 +19,50 @@ namespace Medusa
 	Subscriber::Subscriber(const std::string& msgType, const bool& presort):msgType(msgType), presort(presort)
 	{}
 	
-	std::stack<Msg> Subscriber::collect()
+	Subscriber::Subscriber(const Subscriber& other):msgType(other.msgType), presort(other.presort),msgs(other.msgs)
+	{
+		
+	}
+	
+	std::stack<Msg>& Subscriber::collect()
 	{
 		return msgs;				
 	}
 	
 	void Subscriber::post(const Msg& msg)
-	{				
+	{						
 		if(presort && msg.isType(msgType))
 		{
 			msgs.push(msg);
 		}
 	}
-
+	
 	void Messenger::publish(const Msg& msg)
 	{
-		for(Subscriber subscriber : subscribers)
+		//std::vector<std::weak_ptr<Subscriber>>::iterator it; 
+		for(auto it = subscribers.begin(); it != subscribers.end(); ++it)
 		{
-			subscriber.post(msg);
+			if(std::shared_ptr<Subscriber> subscriber = it->lock())
+			{
+				subscriber->post(msg);
+			}
+			else
+			{//subscribers.remove(weakSubscriber);
+				subscribers.erase(it);
+			}
+			
 		}
 	}
 
-	void Messenger::addSubscriber(const Subscriber& subscriber)
+	void Messenger::addSubscriber(const std::shared_ptr<Subscriber>& subscriber)
 	{
 		subscribers.push_back(subscriber);
 	}
+
+	/*Subscriber Messenger::newSubscriber(const std::string& msgType, const bool& presort)
+	{
+		Subscriber subscriber(msgType, presort);
+		subscribers.push_back(subscriber);
+		return subscriber;
+	}*/
 }

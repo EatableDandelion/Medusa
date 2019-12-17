@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <variant>
+#include <vector>
 #include <Circe/Circe.h>
 
 namespace Medusa
@@ -80,14 +81,16 @@ namespace Medusa
 	{
 		public:
 			Subscriber(const std::string& msgType, const bool& presort = true);
-		
-			std::stack<Msg> collect();
+			
+			Subscriber(const Subscriber& other);
+			
+			std::stack<Msg>& collect();
 			
 		private:
 			friend class Messenger;
 			std::stack<Msg> msgs;
-			const std::string msgType;
-			const bool presort;
+			std::string msgType;
+			bool presort;
 			void post(const Msg& msg);			
 	};
 	
@@ -96,9 +99,10 @@ namespace Medusa
 		public:
 			void publish(const Msg& msg);
 			
-			void addSubscriber(const Subscriber& subscriber);
+			//Subscriber newSubscriber(const std::string& msgType, const bool& presort = true);
+			void addSubscriber(const std::shared_ptr<Subscriber>& subscriber);
 		
 		private:
-			std::vector<Subscriber> subscribers; 			
+			std::vector<std::weak_ptr<Subscriber>> subscribers; 			
 	};
 }

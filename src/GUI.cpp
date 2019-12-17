@@ -80,24 +80,22 @@ namespace Medusa
 	Button::Button(const Panel& panel):panel(panel), mouseObserver([](Circe::Vec2 oldValue, Circe::Vec2 newValue){})
 	{}
 	
-	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass, const std::shared_ptr<Messenger>& messenger):hudPass(hudPass)
+	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass, std::shared_ptr<Messenger>& messenger):hudPass(hudPass), subscriber(std::make_shared<Subscriber>("mouseclick"))//, subscriber(messenger->newSubscriber("mouseclick"))
 	{
-		//messenger->addSubscriber(subscriber);
+		messenger->addSubscriber(subscriber);
 	}
 	
-	/*void GUI::update()
+	void GUI::update()
 	{
-		std::stack<std::shared_ptr<Msg>> msgs = subscriber.collect();
+		std::stack<Msg> msgs = subscriber->collect();
+		
 		while(!msgs.empty())
 		{
-			std::shared_ptr<Msg> msg = msgs.top();
+			Msg msg = msgs.top();
 			msgs.pop();
-			if(msg.type == "mouseclick")
-			{
-				
-			}
+			std::cout << "Clicked" << std::endl;
 		}
-	}*/
+	}
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
 	{
