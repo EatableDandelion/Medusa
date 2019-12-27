@@ -3,25 +3,43 @@
 
 namespace Medusa
 {
-	Mouse::Mouse():dragStart(0.0f, 0.0f)
+	Mouse::Mouse()
 	{
+		dragStartX = 0.0f;
+		dragStartY = 0.0f;
 		dragged = false;
 	}
 	
 	void Mouse::onPress(const std::size_t& channel)
 	{
-		buttons.onChange(channel, 1);
+		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		{
+			if(std::shared_ptr<MouseListener> listener = it->lock())
+			{
+				if(channel == KEYS::LEFT_CLICK)
+				{
+					listener->onLeftClick();
+				}
+				else if(channel == KEYS::RIGHT_CLICK)
+				{
+					listener->onRightClick();
+				}
+			}
+			else
+			{
+				listeners.erase(it);
+			}			
+		}
 		
 		if(channel == 0)
 		{
-			dragStart = cursor.getValue(0);
+			dragStartX = x;
+			dragStartY = y;
 		}		
 	}
 	
 	void Mouse::onRelease(const std::size_t& channel)
 	{
-		buttons.onChange(channel, 0);
-		
 		if(channel == 0)
 		{
 			dragged = false;
@@ -30,48 +48,84 @@ namespace Medusa
 	
 	void Mouse::onMoved(const Circe::Vec2& newValue)
 	{
-		cursor.onChange(0, newValue);
+		x = newValue(0);
+		y = newValue(1);
+		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		{
+			if(std::shared_ptr<MouseListener> listener = it->lock())
+			{							
+				listener->x = x;
+				listener->y = y;
+				listener->onMove();
+			}
+			else
+			{
+				listeners.erase(it);
+			}			
+		}
 
-		if(buttons.getValue(0)==0)return;
-		if(!dragged && Circe::distanceSquare(dragStart, cursor.getValue(0)) > 0.01f*0.01f)
+		if(LMB==0)return;
+		if(!dragged && ((x-dragStartX)*(x-dragStartX)+(y-dragStartY)*(y-dragStartY)) > 0.01f*0.01f)
 		{
 			dragged = true;
-			dragObserver.setValue(0, cursor.getValue(0));
 		}
 		if(dragged)
 		{
 			onDrag();
-		}
-			
-	}
-	
-	void Mouse::addClickListener(const std::function<void(bool, bool)>& listener)
-	{
-		buttons.addListener(1, listener);
-	}
-	
-	void Mouse::addMoveListener(const std::function<void(Circe::Vec2, Circe::Vec2)>& listener)
-	{
-		cursor.addListener(0, listener);
-	}
-	
-	void Mouse::addDragListener(const std::function<void(Circe::Vec2, Circe::Vec2)>& listener)
-	{
-		dragObserver.addListener(0, listener);
+		}		
 	}
 	
 	void Mouse::onDrag()
 	{
-		dragObserver.onChange(0, cursor.getValue(0));
+		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		{
+			if(std::shared_ptr<MouseListener> listener = it->lock())
+			{							
+				listener->x = x;
+				listener->y = y;
+				listener->onDrag(dragStartX, dragStartY);
+			}
+			else
+			{
+				listeners.erase(it);
+			}			
+		}
 	}
 	
 	float Mouse::getPosx()
 	{
-		return cursor.getValue(0)(0);
+		return x;
 	}
 	
 	float Mouse::getPosy()
 	{
-		return cursor.getValue(0)(1);
+		return y;
 	}
+	
+	void Mouse::addListener(const std::shared_ptr<MouseListener>& listener)
+	{
+		listeners.push_back(listener);
+	}
+	
+	float MouseListener::getX() const
+	{
+		return x;
+	}
+	
+	float MouseListener::getY() const
+	{
+		return y;
+	}
+	
+	void MouseListener::onLeftClick()
+	{}
+	
+	void MouseListener::onRightClick()
+	{}
+	
+	void MouseListener::onMove()
+	{}
+	
+	void MouseListener::onDrag(const float& startX, const float& startY)
+	{}
 }

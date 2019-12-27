@@ -16,7 +16,6 @@ int main(void)
 	/**
 	TODO:
 	Integration with Rosie
-	GUI
 	*/
 	
 	CIRCE_INITPROFILER;
@@ -46,7 +45,6 @@ int main(void)
 	assets->loadTexture("blockIso.png");
 	
 	std::shared_ptr<GeometryPass> geometryPass = std::make_shared<GeometryPass>();
-	
 	std::shared_ptr<AmbientLightPass> ambientLights = std::make_shared<AmbientLightPass>();
 	std::shared_ptr<DirectionalLightPass> directionalLights = std::make_shared<DirectionalLightPass>();	
 	std::shared_ptr<DebugPass> debugPass = std::make_shared<DebugPass>();
@@ -67,7 +65,8 @@ int main(void)
 	RenderingEngine engine(geometryPass, ambientLights, window.getWidth(), window.getHeight());
 	
 	std::shared_ptr<Messenger> messenger = std::make_shared<Messenger>();
-	GUI gui(hudPass, messenger);
+	std::shared_ptr<GUI> gui = std::make_shared<GUI>(hudPass);
+	window.getMouse().addListener(gui);
 	
 	
 	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
@@ -86,17 +85,16 @@ int main(void)
 	geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
 	debugPass->addEntity("sphere.obj", transform3);
 	debugPass->addEntity("sphere.obj", transform4);
-	/*Label label = gui.addLabel(4, "font.png", Circe::Vec2(-0.8f, 0.9f), Circe::Vec2(0.05f, 0.05f));
+	Label label = gui->addLabel(4, "font.png", Circe::Vec2(-0.8f, 0.9f), Circe::Vec2(0.05f, 0.05f));
 	label.setText("Test");
 	
-	Button button = gui.addButton("Warframe0000.jpg", Circe::Vec2(0.0f, 0.0f), Circe::Vec2(0.1f, 0.1f));
-	*/
+	Button button = gui->addButton("Warframe0000.jpg", Circe::Vec2(0.8f, 0.8f), Circe::Vec2(0.2f, 0.2f), [](){std::cout << "Button Pressed" << std::endl;});
+	
 	Camera cam = engine.getCamera();
 	
 	
 	
-	window.getKeyboard().addListener(KEYS::KEY_E, [&messenger](bool oldValue, bool newValue){messenger->publish(Msg("mouseclick"));});
-	window.getMouse().addMoveListener([&cam](Circe::Vec2 oldValue, Circe::Vec2 newValue){cam.rotate(-0.5f*(newValue(1)-oldValue(1)), -0.5f*(newValue(0)-oldValue(0)), 0.0f);});
+	window.getKeyboard().addListener(KEYS::KEY_E, [&messenger](bool oldValue, bool newValue){messenger->publish(Event("mouseclick"));});
 	window.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
 	window.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
 	window.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
@@ -128,14 +126,16 @@ int main(void)
 			t1 = high_resolution_clock::now(); 
 			{CIRCE_PROFILEBLOCK;		
 				engine.draw(window.getWidth(), window.getHeight());
-				window.refresh();
+			}
+			{CIRCE_PROFILEBLOCK;
+				//window.refresh();
+				window.update();
 			}
 			
 			{CIRCE_PROFILEBLOCK;		
 				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
 				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
-			//	label.setText(std::to_string(execTime));
-				gui.update();
+				label.setText(std::to_string(execTime));
 			}	
 				
 			{CIRCE_PROFILEBLOCK;
@@ -148,8 +148,10 @@ int main(void)
 					t++;
 				}
 			}
-		
-		
+			{CIRCE_PROFILEBLOCK;
+				//window.refresh();
+				window.swapBuffers();
+			}		
     }
 	std::cout << std::endl;
 }

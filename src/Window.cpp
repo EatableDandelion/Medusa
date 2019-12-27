@@ -83,7 +83,7 @@ namespace Medusa
 	}
 	
 	void IWindow::refresh()
-	{
+	{	
 		update();
 		swapBuffers();
 	}
@@ -137,6 +137,7 @@ namespace Medusa
 		glViewport(0, 0, width, height);
 		
 		glfwPollEvents();
+		
 	}
 	
 	bool GLFWWindow::shouldClose() const

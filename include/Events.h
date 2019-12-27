@@ -9,6 +9,8 @@
 
 namespace Medusa
 {
+	//Observer is the simplest subscriber, reacts to the value.
+	//For more complex subscriber, use EventListener or MessageSubscriber
 	template<typename T>
 	class Observer
 	{
@@ -60,11 +62,11 @@ namespace Medusa
 			std::vector<std::weak_ptr<Observer<T>>> observers;
 	};
 	
-	struct Msg
+	struct Event
 	{
 		typedef std::variant<int, float, bool, std::string, Circe::Vec2, Circe::Vec3> var;
 		public:
-			Msg(const std::string& type);
+			Event(const std::string& type);
 			
 			bool isType(const std::string& type) const;
 			
@@ -79,27 +81,52 @@ namespace Medusa
 	
 	class Subscriber
 	{
-		public:
-			Subscriber(const std::string& msgType, const bool& presort = true);
-			
-			Subscriber(const Subscriber& other);
-			
-			std::stack<Msg>& collect();
-			
+		public:			
+			//Subscriber(const Subscriber& other);
+					
+			virtual void post(const Event& msg) = 0;	
+		
 		private:
 			friend class Messenger;
-			std::stack<Msg> msgs;
+			
 			std::string msgType;
-			bool presort;
-			void post(const Msg& msg);			
+			
+					
 	};
 	
+	//MessageSubscriber is a delayed listener
+	class MessageSubscriber : public Subscriber
+	{
+		public:
+			MessageSubscriber(const std::string& msgType, const bool& presort = true);
+			
+			virtual void post(const Event& msg);
+			
+			std::stack<Event>& collect();
+		
+		private:
+			const std::string msgType;
+			bool presort;
+			std::stack<Event> msgs;
+	};
+	
+	//EventListener is a sync subscriber
+	class EventListener : public Subscriber
+	{
+		public:
+			EventListener(const std::function<void(Event)>& reaction);
+		
+			virtual void post(const Event& msg);
+			
+		private:
+			std::function<void(Event)> reaction;
+	};
+
 	class Messenger
 	{
 		public:
-			void publish(const Msg& msg);
-			
-			//Subscriber newSubscriber(const std::string& msgType, const bool& presort = true);
+			void publish(const Event& msg);
+
 			void addSubscriber(const std::shared_ptr<Subscriber>& subscriber);
 		
 		private:

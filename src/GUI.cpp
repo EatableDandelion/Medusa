@@ -25,7 +25,7 @@ namespace Medusa
 	Panel::Panel(const Circe::Vec2& position, const Circe::Vec2& dimension, const std::shared_ptr<RenderingEntity>& entity):m_entity(entity)
 	{
 		transform = std::make_shared<Transform<3>>();
-		transform->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, position(0)-dimension(0), position(1)-dimension(1), 0.0f));
+		transform->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, position(0), position(1), 0.0f));
 		transform->setFrameScale(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
 		entity->setTransform(transform);
 	}
@@ -77,24 +77,64 @@ namespace Medusa
 		return characters;
 	}
 	
-	Button::Button(const Panel& panel):panel(panel), mouseObserver([](Circe::Vec2 oldValue, Circe::Vec2 newValue){})
+	
+	AABBArea::AABBArea(const float& xmin, const float& xmax, const float& ymin, const float& ymax):xmin(xmin), xmax(xmax), ymin(ymin), ymax(ymax)
 	{}
 	
-	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass, std::shared_ptr<Messenger>& messenger):hudPass(hudPass), subscriber(std::make_shared<Subscriber>("mouseclick"))//, subscriber(messenger->newSubscriber("mouseclick"))
+	bool AABBArea::isInBound(const float& x, const float& y) const
 	{
-		messenger->addSubscriber(subscriber);
+		if(x < xmin || x > xmax || y < ymin || y > ymax) return false;		
+		return true;
 	}
 	
-	void GUI::update()
+	
+	SelectableArea::SelectableArea(const std::shared_ptr<Area>& area):area(area), selectedAction([](){}), deselectedAction([](){})
+	{}
+	
+	void SelectableArea::setSelectedAction(const std::function<void(void)>& action)
 	{
-		std::stack<Msg> msgs = subscriber->collect();
-		
-		while(!msgs.empty())
-		{
-			Msg msg = msgs.top();
-			msgs.pop();
-			std::cout << "Clicked" << std::endl;
-		}
+		selectedAction = action;
+	}
+	
+	void SelectableArea::setDeselectedAction(const std::function<void(void)>& action)
+	{
+		deselectedAction = action;
+	}
+	
+	void SelectableArea::select()
+	{
+		selectedAction();
+	}
+	
+	void SelectableArea::deselect()
+	{
+		deselectedAction();
+	}
+	
+	bool SelectableArea::isInBound(const float& x, const float& y) const
+	{
+		return area->isInBound(x,y);
+	}
+	
+	
+	
+	Button::Button(const Panel& panel, const std::function<void(void)>& action):panel(panel), selectableArea(std::make_shared<AABBArea>(panel.getTransform()->getFramePosition()(0)-panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(0)+panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(1)-panel.getTransform()->getFrameScale()(1), panel.getTransform()->getFramePosition()(1)+panel.getTransform()->getFrameScale()(1)))
+	{
+		selectableArea.setSelectedAction(action);
+	}
+	
+	bool Button::isInBound(const float& x, const float& y) const
+	{
+		return selectableArea.isInBound(x, y);
+	}
+	
+	void Button::press()
+	{
+		selectableArea.select();
+	}
+	
+	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass):hudPass(hudPass)
+	{
 	}
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
@@ -122,13 +162,24 @@ namespace Medusa
 		}
 		return labels.at(0);
 	}
+	
+	void GUI::onLeftClick()
+	{
+		for(Button button : buttons)
+		{
+			if(button.isInBound(2.0f*getX()-1.0f, -2.0f*getY()+1.0f))
+			{
+				button.press();
+			}
+		}
+	}
 
-	Button GUI::addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
+	Button GUI::addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension, const std::function<void(void)>& action)
 	{
 		if(std::shared_ptr<IRenderingPass> pass = hudPass.lock())
 		{
 			Panel newPanel(position, dimension, pass->addEntity(texture, NULL));
-			Button newButton(newPanel);
+			Button newButton(newPanel, action);
 			buttons.push_back(newButton);
 			return newButton;
 		}

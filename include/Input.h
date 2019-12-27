@@ -5,6 +5,7 @@
 #include <memory>
 #include <functional>
 #include "Circe/Circe.h"
+#include "Events.h"
 
 namespace Medusa
 {
@@ -57,8 +58,8 @@ namespace Medusa
 		KEY_MINUS = 45,
 		KEY_EQUALS = 61,
 		
-		MOUSE_LEFT = 0,
-		MOUSE_RIGHT = 1
+		LEFT_CLICK = 0,
+		RIGHT_CLICK = 1
 	};
 
 	template<typename T, std::size_t NbChannels>
@@ -109,6 +110,8 @@ namespace Medusa
 			T m_values[NbChannels];
 	};
 	
+	class MouseListener;
+
 	class Mouse
 	{
 		public:
@@ -116,19 +119,42 @@ namespace Medusa
 			void onPress(const std::size_t& channel);
 			void onRelease(const std::size_t& channel);
 			void onMoved(const Circe::Vec2& newValue);
-			void addClickListener(const std::function<void(bool, bool)>& listener);
-			void addMoveListener(const std::function<void(Circe::Vec2, Circe::Vec2)>& listener);
-			void addDragListener(const std::function<void(Circe::Vec2, Circe::Vec2)>& listener);
 			float getPosx();
 			float getPosy();
 			
+			void addListener(const std::shared_ptr<MouseListener>& listener);
+			
 		private:
-			Input<bool, 3> buttons;
-			Input<Circe::Vec2, 1> cursor;
-			Input<Circe::Vec2, 1> dragObserver;
+			bool LMB;
+			bool RMB;
+			bool WMB;
+			float x;
+			float y;
 			bool dragged;
-			Circe::Vec2 dragStart;
+			float dragStartX;
+			float dragStartY;
+			std::vector<std::weak_ptr<MouseListener>> listeners;
+			
+		private:
 			void onDrag();
+	};
+	
+	class MouseListener
+	{
+		public:
+			float getX() const;
+			float getY() const;
+			
+			virtual void onLeftClick();
+			virtual void onRightClick();
+			virtual void onMove();
+			virtual void onDrag(const float& startX, const float& startY);
+			
+		private:
+			float x;
+			float y;
+			
+			friend class Mouse;
 	};
 	
 	typedef Input<bool, 260> Keyboard;
