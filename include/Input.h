@@ -122,7 +122,7 @@ namespace Medusa
 			float getPosx();
 			float getPosy();
 			
-			void addListener(const std::shared_ptr<MouseListener>& listener);
+			void addListener(std::shared_ptr<MouseListener> listener);
 			
 		private:
 			bool LMB;
@@ -133,7 +133,7 @@ namespace Medusa
 			bool dragged;
 			float dragStartX;
 			float dragStartY;
-			std::vector<std::weak_ptr<MouseListener>> listeners;
+			WeakCollection<MouseListener> listeners;
 			
 		private:
 			void onDrag();

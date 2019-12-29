@@ -90,17 +90,35 @@ namespace Medusa
 		glDepthMask(false);
 	}
 	
+	void GLPassSettings::setLineThickness(const float& thickness)
+	{
+		glLineWidth(thickness);
+	}
+	
 	
 	void IRenderingPass::renderAll(const Camera& camera)
 	{
-		render(camera);
+		if(active)
+		{
+			render(camera);
+		}
+		
 		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
 		{
 			next->renderAll(camera);
 		}
 	}
 	
-	void IRenderingPass::addNext(const std::shared_ptr<IRenderingPass>& nextPass)
+	void IRenderingPass::init(const std::shared_ptr<Assets>& assets)
+	{
+		initAssets(assets);
+		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		{
+			next->init(assets);
+		}
+	}
+	
+	void IRenderingPass::addNext(const std::shared_ptr<IRenderingPass> nextPass)
 	{
 		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
 		{
@@ -123,6 +141,14 @@ namespace Medusa
 		return NULL;
 	}
 	
+	void IRenderingPass::setActive(const bool& isActive)
+	{
+		active = isActive;
+	}
+	
+	
+	
+	
 	GeometryPass::GeometryPass():RenderingPass("GeometryPass", false, true, true)
 	{}
 	
@@ -139,6 +165,9 @@ namespace Medusa
 		return entity;
 	}
 
+
+
+
 	DebugPass::DebugPass():RenderingPass("DebugDisplay", false, true, false)
 	{
 		
@@ -153,5 +182,10 @@ namespace Medusa
 	std::shared_ptr<RenderingEntity> DebugPass::addEntity(const std::string& mesh, const std::shared_ptr<Transform<3>>& transform)
 	{
 		return RenderingPass::createEntity(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING), transform);
+	}
+	
+	void DebugPass::setLineThickness(const float& thickness)
+	{
+		settings.setLineThickness(thickness);
 	}
 }

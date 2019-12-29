@@ -12,9 +12,9 @@ namespace Medusa
 	
 	void Mouse::onPress(const std::size_t& channel)
 	{
-		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		for(std::shared_ptr<MouseListener> listener : listeners)
 		{
-			if(std::shared_ptr<MouseListener> listener = it->lock())
+			if(listener)
 			{
 				if(channel == KEYS::LEFT_CLICK)
 				{
@@ -24,11 +24,7 @@ namespace Medusa
 				{
 					listener->onRightClick();
 				}
-			}
-			else
-			{
-				listeners.erase(it);
-			}			
+			}				
 		}
 		
 		if(channel == 0)
@@ -50,18 +46,14 @@ namespace Medusa
 	{
 		x = newValue(0);
 		y = newValue(1);
-		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		for(std::shared_ptr<MouseListener> listener : listeners)
 		{
-			if(std::shared_ptr<MouseListener> listener = it->lock())
-			{							
+			if(listener)
+			{			
 				listener->x = x;
 				listener->y = y;
 				listener->onMove();
-			}
-			else
-			{
-				listeners.erase(it);
-			}			
+			}		
 		}
 
 		if(LMB==0)return;
@@ -77,17 +69,13 @@ namespace Medusa
 	
 	void Mouse::onDrag()
 	{
-		for(auto it = listeners.begin(); it != listeners.end(); ++it)
+		for(std::shared_ptr<MouseListener> listener : listeners)
 		{
-			if(std::shared_ptr<MouseListener> listener = it->lock())
-			{							
+			if(listener)
+			{				
 				listener->x = x;
 				listener->y = y;
 				listener->onDrag(dragStartX, dragStartY);
-			}
-			else
-			{
-				listeners.erase(it);
 			}			
 		}
 	}
@@ -102,9 +90,9 @@ namespace Medusa
 		return y;
 	}
 	
-	void Mouse::addListener(const std::shared_ptr<MouseListener>& listener)
+	void Mouse::addListener(std::shared_ptr<MouseListener> listener)
 	{
-		listeners.push_back(listener);
+		listeners.add(listener);
 	}
 	
 	float MouseListener::getX() const

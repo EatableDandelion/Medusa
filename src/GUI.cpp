@@ -21,7 +21,6 @@ namespace Medusa
 		return entity;
 	}
 	
-	
 	Panel::Panel(const Circe::Vec2& position, const Circe::Vec2& dimension, const std::shared_ptr<RenderingEntity>& entity):m_entity(entity)
 	{
 		transform = std::make_shared<Transform<3>>();
@@ -40,7 +39,12 @@ namespace Medusa
 		return transform;
 	}
 	
-	Label::Label(const Circe::Vec2& position, const Circe::Vec2& dimension)
+	void Panel::setColor(const Circe::Vec3& color)
+	{
+		m_entity->setUniform<Circe::Vec3>("setColor", color);
+	}
+	
+	Label::Label(const Circe::Vec2& position, const Circe::Vec2& dimension, const Circe::Vec3& color):color(color)
 	{
 		transform = std::make_shared<Transform<3>>();
 		transform->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, position(0)-dimension(0), position(1)-dimension(1), 0.0f));
@@ -64,11 +68,20 @@ namespace Medusa
 			characters[i].getEntity()->setVisibility(c != (int)(' '));
 			characters[i].getEntity()->setUniform<Circe::Vec2>("textOffset", Circe::Vec2((c%16)/16.0f, (c/16)/16.0f));
 			characters[i].getEntity()->setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f/16.0f, 1.0f/16.0f));
-			characters[i].getEntity()->setUniform<Circe::Vec3>("setColor", Circe::Vec3(0.8f, 0.9f, 0.1f));
+			characters[i].setColor(color);
 		}
 		for(int i = text.length(); i<characters.size(); i++)
 		{
 			characters[i].getEntity()->setVisibility(false);
+		}
+	}
+	
+	void Label::setTextColor(const Circe::Vec3& newColor)
+	{
+		color = newColor;
+		for(int i = 0; i<characters.size(); i++)
+		{		
+			characters[i].setColor(color);
 		}
 	}
 	
@@ -88,27 +101,54 @@ namespace Medusa
 	}
 	
 	
-	SelectableArea::SelectableArea(const std::shared_ptr<Area>& area):area(area), selectedAction([](){}), deselectedAction([](){})
+	void SelectionListener::onSelection()
 	{}
 	
-	void SelectableArea::setSelectedAction(const std::function<void(void)>& action)
-	{
-		selectedAction = action;
-	}
+	void SelectionListener::onDeselection()
+	{}
 	
-	void SelectableArea::setDeselectedAction(const std::function<void(void)>& action)
-	{
-		deselectedAction = action;
-	}
 	
-	void SelectableArea::select()
+	FunctionalListener::FunctionalListener(const std::function<void(void)>& action):selectedAction(action), deselectedAction([](){})
+	{}
+	
+	void FunctionalListener::onSelection()
 	{
 		selectedAction();
 	}
 	
-	void SelectableArea::deselect()
+	void FunctionalListener::onDeselection()
 	{
 		deselectedAction();
+	}
+	
+	void FunctionalListener::setSelectedAction(const std::function<void(void)>& action)
+	{
+		selectedAction = action;
+	}
+	
+	void FunctionalListener::setDeselectedAction(const std::function<void(void)>& action)
+	{
+		deselectedAction = action;
+	}
+	
+	
+	SelectableArea::SelectableArea(const std::shared_ptr<Area>& area):area(area)
+	{}
+	
+	void SelectableArea::select()
+	{
+		for(std::shared_ptr<SelectionListener> listener : listeners)
+		{
+			if(listener != NULL)
+			{
+				listener->onSelection();
+			}
+		}
+	}
+	
+	void SelectableArea::addSelectionListener(std::shared_ptr<SelectionListener> listener)
+	{
+		listeners.add(listener);
 	}
 	
 	bool SelectableArea::isInBound(const float& x, const float& y) const
@@ -118,24 +158,19 @@ namespace Medusa
 	
 	
 	
-	Button::Button(const Panel& panel, const std::function<void(void)>& action):panel(panel), selectableArea(std::make_shared<AABBArea>(panel.getTransform()->getFramePosition()(0)-panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(0)+panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(1)-panel.getTransform()->getFrameScale()(1), panel.getTransform()->getFramePosition()(1)+panel.getTransform()->getFrameScale()(1)))
+	Button::Button(const Panel& panel, const std::function<void(void)>& action):SelectableArea(std::make_shared<AABBArea>(panel.getTransform()->getFramePosition()(0)-panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(0)+panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(1)-panel.getTransform()->getFrameScale()(1), panel.getTransform()->getFramePosition()(1)+panel.getTransform()->getFrameScale()(1))), panel(panel)
 	{
-		selectableArea.setSelectedAction(action);
+		listener = std::make_shared<FunctionalListener>(action);
+		SelectableArea::addSelectionListener(listener);
 	}
 	
-	bool Button::isInBound(const float& x, const float& y) const
+	void Button::setBackgroundColor(const Circe::Vec3& color)
 	{
-		return selectableArea.isInBound(x, y);
-	}
-	
-	void Button::press()
-	{
-		selectableArea.select();
+		panel.setColor(color);
 	}
 	
 	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass):hudPass(hudPass)
-	{
-	}
+	{}
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
 	{
@@ -163,15 +198,27 @@ namespace Medusa
 		return labels.at(0);
 	}
 	
+	Label GUI::addLabel(const std::string& text, const float& posX, const float& posY, const float& size)
+	{
+		Label res = addLabel(text.size(), font, Circe::Vec2(posX, posY), Circe::Vec2(size, size));
+		res.setText(text);
+		return res;
+	}
+	
 	void GUI::onLeftClick()
 	{
-		for(Button button : buttons)
+		for(SelectableArea area : selectableAreas)
 		{
-			if(button.isInBound(2.0f*getX()-1.0f, -2.0f*getY()+1.0f))
+			if(area.isInBound(2.0f*getX()-1.0f, -2.0f*getY()+1.0f))
 			{
-				button.press();
+				area.select();
 			}
 		}
+	}
+	
+	void GUI::addSelectableArea(const SelectableArea& area)
+	{
+		selectableAreas.push_back(area);
 	}
 
 	Button GUI::addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension, const std::function<void(void)>& action)
@@ -180,9 +227,14 @@ namespace Medusa
 		{
 			Panel newPanel(position, dimension, pass->addEntity(texture, NULL));
 			Button newButton(newPanel, action);
-			buttons.push_back(newButton);
+			addSelectableArea(newButton);
 			return newButton;
 		}
-		return buttons.at(0);
-	}	
+		return Button(Panel(position, dimension, nullptr), action);
+	}
+	
+	void GUI::setFont(const std::string& newFont)
+	{
+		font = newFont;
+	}
 }

@@ -4,12 +4,12 @@ namespace Medusa
 {	
 	Event::Event(const std::string& type):m_type(type)
 	{}
-	
+
 	bool Event::isType(const std::string& type) const
 	{
 		return m_type == type;
 	}
-	
+
 	void Event::addArgument(const std::string& name, const int& value)
 	{
 		arguments.insert(std::pair<std::string, var>(name, var(value)));

@@ -12,15 +12,16 @@
 #include "Input.h"
 #include "Lights.h"
 
-
 namespace Medusa
 {	
 	class RenderingEngine
 	{
 		public:
-			RenderingEngine(const std::shared_ptr<IRenderingPass> geoPass, const std::shared_ptr<IRenderingPass> ppPass, const int& windowWidth, const int& windowHeight);
+			RenderingEngine(const int& windowWidth, const int& windowHeight);
 			
 			~RenderingEngine();
+			
+			void init(const std::shared_ptr<IRenderingPass> geoPass, const std::shared_ptr<IRenderingPass> ppPass, const std::shared_ptr<Assets> assets);
 			
 			void draw(const int& width, const int& height);
 			

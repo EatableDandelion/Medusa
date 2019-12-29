@@ -22,6 +22,8 @@ namespace Medusa
 			
 			void setDepthWrite(const bool& activate);
 			
+			virtual void setLineThickness(const float& thickness) = 0;
+			
 			void start();
 			
 			void end();
@@ -56,21 +58,32 @@ namespace Medusa
 			
 			virtual void startDepthWrite();
 			virtual void stopDepthWrite();
+			
+			virtual void setLineThickness(const float& thickness);
+			
 	};
 	
 	class IRenderingPass
 	{	
 		public:
 			virtual ~IRenderingPass() = default;
+			
 			void renderAll(const Camera& camera);
 			virtual void render(const Camera& camera) = 0;
-			virtual void init(const std::shared_ptr<Assets>& assets) = 0;
-			void addNext(const std::shared_ptr<IRenderingPass>& nextPass);
+			
+			void init(const std::shared_ptr<Assets>& assets);
+			virtual void initAssets(const std::shared_ptr<Assets>& assets) = 0;
+			
+			void addNext(const std::shared_ptr<IRenderingPass> nextPass);
+			
 			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform);
 			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform);
 			
+			void setActive(const bool& isActive);
+			
 		private:
 			std::weak_ptr<IRenderingPass> m_next;
+			bool active = true;
 	};
 	
 	template<typename EntityType, typename PassSettings>
@@ -106,7 +119,7 @@ namespace Medusa
 			void render(const Camera& camera)
 			{
 				bind();
-
+				
 				for(std::shared_ptr<EntityType> entity : entities)
 				{
 					updateEntity(entity, camera);
@@ -129,10 +142,10 @@ namespace Medusa
 				return entities.get(id);
 			}
 			
-			virtual void init(const std::shared_ptr<Assets>& assets)
+			virtual void initAssets(const std::shared_ptr<Assets>& assets)
 			{
 				m_shader = assets->getShader(shaderName);
-				m_assets = assets;
+				m_assets = assets;	
 			}
 			
 			std::shared_ptr<Assets> getAssets()
@@ -179,7 +192,9 @@ namespace Medusa
 			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
 			
 			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& mesh, const std::shared_ptr<Transform<3>>& transform);	
-
+			
+			void setLineThickness(const float& thickness);
+			
 		private:
 			GeometryPass geometryPass;
 	};

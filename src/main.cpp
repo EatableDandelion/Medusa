@@ -2,9 +2,8 @@
 #include <chrono>
 #include <ratio>
 #include <ctime>
-#include "Window.h"
 #include "TestECS.h"
-
+#include "Window.h"
 
 using namespace Medusa;
 using namespace Circe;
@@ -29,9 +28,13 @@ int main(void)
 	
 	std::shared_ptr<Assets> assets = std::make_shared<Assets>("../../Resource/Mesh/", "../../Resource/Texture/", "../../Resource/Shader/");
 	assets->loadMesh("plane.obj", -1);
+	assets->loadMesh("triangle.obj", -1);
 	assets->loadMesh("monkey.obj", 1);
 	assets->loadMesh("sphere.obj", 1);
 	assets->loadMesh("cube.obj", 1);
+	assets->loadMesh("circle.obj", 1);
+	assets->loadMesh("square.obj", 1);
+	assets->loadMesh("hexagon.obj", 1);
 	
 	assets->loadShader("GeometryPass");
 	assets->loadShader("DirectionalLight");
@@ -43,6 +46,7 @@ int main(void)
 	assets->loadTexture("Warframe0002.jpg");
 	assets->loadTexture("font.png");
 	assets->loadTexture("blockIso.png");
+	assets->loadTexture("blank.png");
 	
 	std::shared_ptr<GeometryPass> geometryPass = std::make_shared<GeometryPass>();
 	std::shared_ptr<AmbientLightPass> ambientLights = std::make_shared<AmbientLightPass>();
@@ -50,19 +54,15 @@ int main(void)
 	std::shared_ptr<DebugPass> debugPass = std::make_shared<DebugPass>();
 	std::shared_ptr<HUDPass> hudPass = std::make_shared<HUDPass>();
 	
+	debugPass->setLineThickness(2.0f);
 	
 	debugPass->addNext(hudPass);
 	directionalLights->addNext(debugPass);
 	ambientLights->addNext(directionalLights);
 	
 	
-	geometryPass->init(assets);
-	debugPass->init(assets);
-	directionalLights->init(assets);
-	ambientLights->init(assets);
-	hudPass->init(assets);
-	
-	RenderingEngine engine(geometryPass, ambientLights, window.getWidth(), window.getHeight());
+	RenderingEngine engine(window.getWidth(), window.getHeight());
+	engine.init(geometryPass, ambientLights, assets);
 	
 	std::shared_ptr<Messenger> messenger = std::make_shared<Messenger>();
 	std::shared_ptr<GUI> gui = std::make_shared<GUI>(hudPass);
@@ -82,13 +82,16 @@ int main(void)
 	ambientLights->addEntity(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));	
 	
 	geometryPass->addEntity("plane.obj", "Warframe0000.jpg", transform1);
-	geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
-	debugPass->addEntity("sphere.obj", transform3);
-	debugPass->addEntity("sphere.obj", transform4);
+	//geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
+	debugPass->addEntity("square.obj", transform3);
+	debugPass->addEntity("hexagon.obj", transform4);
+	
 	Label label = gui->addLabel(4, "font.png", Circe::Vec2(-0.8f, 0.9f), Circe::Vec2(0.05f, 0.05f));
 	label.setText("Test");
+	label.setTextColor(Circe::Vec3(1.0f, 0.8f, 0.7f));
 	
-	Button button = gui->addButton("Warframe0000.jpg", Circe::Vec2(0.8f, 0.8f), Circe::Vec2(0.2f, 0.2f), [](){std::cout << "Button Pressed" << std::endl;});
+	Button button = gui->addButton("blank.png", Circe::Vec2(0.8f, 0.8f), Circe::Vec2(0.2f, 0.2f), [](){std::cout << "Button Pressed" << std::endl;});
+	button.setBackgroundColor(Circe::Vec3(0.5f, 0.7f, 0.9f));
 	
 	Camera cam = engine.getCamera();
 	
@@ -123,12 +126,15 @@ int main(void)
 	while(!window.shouldClose())
 	{	
 		CIRCE_PROFILEBLOCK;
-			t1 = high_resolution_clock::now(); 
+			t1 = high_resolution_clock::now();
+			
+			{CIRCE_PROFILEBLOCK;
+				window.swapBuffers();
+			}	 
 			{CIRCE_PROFILEBLOCK;		
 				engine.draw(window.getWidth(), window.getHeight());
 			}
 			{CIRCE_PROFILEBLOCK;
-				//window.refresh();
 				window.update();
 			}
 			
@@ -148,10 +154,7 @@ int main(void)
 					t++;
 				}
 			}
-			{CIRCE_PROFILEBLOCK;
-				//window.refresh();
-				window.swapBuffers();
-			}		
+				
     }
 	std::cout << std::endl;
 }
