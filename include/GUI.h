@@ -10,38 +10,37 @@
 
 namespace Medusa
 {	
-	class HUDPass : public RenderingPass<RenderingEntity, GLPassSettings>
+	class HUDPass : public RenderingPass
 	{
 		public:
 			HUDPass();
 			
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+			void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 			
-			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& texture, const shared_ptr<Transform<3>>& transform); 
+			template<typename EntityType, typename... Args>
+			EntityType addEntity(const std::string& texture, Args... args)
+			{
+				Mesh mesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
+				EntityType entity = RenderingPass::createEntity<EntityType>(mesh, std::forward<Args>(args)...);
+				entity.setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
+				return entity;
+			}
 	};
 	
-	class Panel
+	class Panel : public RenderingEntity
 	{
 		public:
-			Panel(const Circe::Vec2& position, const Circe::Vec2& dimension, const std::shared_ptr<RenderingEntity>& entity);
-			
-			std::shared_ptr<Transform<3>> getTransform() const;
-			
-			std::shared_ptr<RenderingEntity> getEntity() const;
+			Panel(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension);
 			
 			void setColor(const Circe::Vec3& color);
-			
-		private:
-			std::shared_ptr<RenderingEntity> m_entity;
-			std::shared_ptr<Transform<3>> transform;
 	};
 	
-	class Label
+	class Label : public RenderingEntity
 	{
 		public:
-			Label(const Circe::Vec2& position, const Circe::Vec2& dimension, const Circe::Vec3& color = Circe::Vec3(1.0f, 1.0f, 1.0f));
+			Label(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension);
 			
-			Panel addCharacter(const std::shared_ptr<RenderingEntity>& entity);
+			void addCharacter(Panel& panel, const float& offset);
 			
 			void setText(const std::string& text);
 			
@@ -50,9 +49,8 @@ namespace Medusa
 			std::vector<Panel> getCharacters() const;
 			
 		private:
+			Transform3 transform;
 			std::vector<Panel> characters;
-			std::shared_ptr<Transform<3>> transform;
-			float charPos;
 			Circe::Vec3 color;
 	};
 	
@@ -125,7 +123,7 @@ namespace Medusa
 	class GUI : public MouseListener
 	{
 		public:
-			GUI(const std::shared_ptr<IRenderingPass>& hudPass);
+			GUI(const std::shared_ptr<HUDPass>& hudPass);
 			
 			Panel addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension);
 			
@@ -142,10 +140,9 @@ namespace Medusa
 			void setFont(const std::string& font);
 			
 		private:
-			std::weak_ptr<IRenderingPass> hudPass;
+			std::weak_ptr<HUDPass> hudPass;
 			std::vector<Panel> panels;
 			std::vector<Label> labels;
-			//std::vector<Button> buttons;
 			std::vector<SelectableArea> selectableAreas;
 			std::string font;
 	};

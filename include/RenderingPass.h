@@ -63,135 +63,103 @@ namespace Medusa
 			
 	};
 	
-	class IRenderingPass
+	/*class IRenderingPass
 	{	
 		public:
 			virtual ~IRenderingPass() = default;
 			
-			void renderAll(const Camera& camera);
+			//void renderAll(const Camera& camera);
 			virtual void render(const Camera& camera) = 0;
 			
-			void init(const std::shared_ptr<Assets>& assets);
+			//void init(const std::shared_ptr<Assets>& assets);
 			virtual void initAssets(const std::shared_ptr<Assets>& assets) = 0;
 			
-			void addNext(const std::shared_ptr<IRenderingPass> nextPass);
+			//void addNext(const std::shared_ptr<IRenderingPass> nextPass);
 			
-			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform);
-			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform);
+			//void setActive(const bool& isActive);
+			
+		private:
+			//std::weak_ptr<IRenderingPass> m_next;
+			//bool active = true;
+	};*/
+	
+	class RenderingPass
+	{
+		public:
+			RenderingPass(const std::string& shaderName, const std::shared_ptr<IPassSettings> settings);
+			
+			RenderingPass(const Shader& shader, const std::shared_ptr<IPassSettings> settings);
+			
+			~RenderingPass();
+			
+			virtual void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
+			
+			void renderAll(const Camera& camera);
+			
+			void render(const std::shared_ptr<EntityData>& entity);
+			
+			void render(const Camera& camera);
+			
+			void setShader(const Shader& shader);
+			
+			void init(const std::shared_ptr<Assets>& assets);
+			
+			virtual void initAssets(const std::shared_ptr<Assets>& assets);
+			
+			std::shared_ptr<Assets> getAssets();
+			
+			void addNext(const std::shared_ptr<RenderingPass> nextPass);
 			
 			void setActive(const bool& isActive);
 			
-		private:
-			std::weak_ptr<IRenderingPass> m_next;
-			bool active = true;
-	};
-	
-	template<typename EntityType, typename PassSettings>
-	class RenderingPass : public IRenderingPass
-	{
-		public:
-			RenderingPass(const std::string& shaderName, const bool& blending, const bool& depthRead, const bool& depthWrite):shaderName(shaderName), settings(blending, depthRead, depthWrite)
+			template<typename EntityType>
+			void removeEntity(const EntityType& entity)
 			{
-				CIRCE_INFO("Initializing rendering pass.");
-			}
-			
-			RenderingPass(const Shader& shader, const bool& blending, const bool& depthRead, const bool& depthWrite):m_shader(shader), settings(blending, depthRead, depthWrite)
-			{
-				CIRCE_INFO("Initializing rendering pass.");
-			}
-			
-			~RenderingPass()
-			{
-				CIRCE_INFO("Terminating rendering pass.");
-			}
-			
-			virtual void updateEntity(std::shared_ptr<EntityType>& entity, const Camera& camera)
-			{}
-			
-			
-			
-			void render(const std::shared_ptr<EntityType>& entity)
-			{
-				m_shader->update(entity->getMaterial());
-				entity->draw(1);
-			}
-			
-			void render(const Camera& camera)
-			{
-				bind();
-				
-				for(std::shared_ptr<EntityType> entity : entities)
-				{
-					updateEntity(entity, camera);
-					render(entity);
-				}
-
-				unbind();
-			}
-			
-			void setShader(const Shader& shader)
-			{
-				m_shader=shader;
-			}
-			
-			template<typename... Args>
-			shared_ptr<EntityType> createEntity(const Mesh& mesh, Args... args)
-			{
-				std::shared_ptr<EntityType> entity = make_shared<EntityType>(mesh, std::forward<Args>(args)...);
-				int id = entities.add(entity);
-				return entities.get(id);
-			}
-			
-			virtual void initAssets(const std::shared_ptr<Assets>& assets)
-			{
-				m_shader = assets->getShader(shaderName);
-				m_assets = assets;	
-			}
-			
-			std::shared_ptr<Assets> getAssets()
-			{
-				return m_assets;
+				entities.remove(entity.getId());
 			}
 			
 		private:
 			Shader m_shader;
-			RenderingCollection<EntityType> entities;
+			RenderingCollection<EntityData> entities;
 			std::string shaderName;
+			std::weak_ptr<RenderingPass> m_next;
+			bool active = true;
 			
-			void bind()
-			{
-				m_shader->bind();
-				settings.start();
-			}		
+			void bind();	
 			
-			void unbind()
-			{
-				settings.end();
-			}
+			void unbind();
 		
 		protected:
 			std::shared_ptr<Assets> m_assets;			
-			PassSettings settings;
+			std::shared_ptr<IPassSettings> settings;
+			
+			template<typename EntityType, typename... Args>
+			EntityType createEntity(const Mesh& mesh, Args... args)
+			{
+				std::shared_ptr<EntityData> entity = std::make_shared<EntityData>(mesh);
+				int id = entities.add(entity);
+				return EntityType(entities(id), std::forward<Args>(args)...);
+			}
 	};
 	
-	class GeometryPass : public RenderingPass<RenderingEntity, GLPassSettings>
+	class GeometryPass : public RenderingPass
 	{
 		public:
 			GeometryPass();
 			
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+			virtual void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 			
-			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& mesh, const  std::string& texture, const std::shared_ptr<Transform<3>>& transform);	
+			RenderingEntity addEntity(const std::string& mesh, const  std::string& texture);	
 	};
 	
-	class DebugPass : public RenderingPass<RenderingEntity, GLPassSettings>
+	class DebugPass : public RenderingPass
 	{
 		public:
 			DebugPass();
 
-			void updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera);
+			virtual void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 			
-			virtual std::shared_ptr<RenderingEntity> addEntity(const std::string& mesh, const std::shared_ptr<Transform<3>>& transform);	
+			RenderingEntity addEntity(const std::string& mesh);	
 			
 			void setLineThickness(const float& thickness);
 			

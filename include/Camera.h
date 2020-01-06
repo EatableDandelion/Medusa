@@ -24,6 +24,6 @@ namespace Medusa
 
 		private:
 			float nearField, farField, width, height;
-			std::shared_ptr<Circe::Transform<3>> m_transform;
+			Circe::Transform3 m_transform;
 	};
 }

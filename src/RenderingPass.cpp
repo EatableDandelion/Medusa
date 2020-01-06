@@ -16,7 +16,7 @@ namespace Medusa
 	void IPassSettings::setDepthRead(const bool& activate)
 	{
 		depthRead = activate;
-	}
+	} 
 			
 	void IPassSettings::setDepthWrite(const bool& activate)
 	{
@@ -96,31 +96,90 @@ namespace Medusa
 	}
 	
 	
-	void IRenderingPass::renderAll(const Camera& camera)
+	
+	
+	
+	
+	
+	
+	RenderingPass::RenderingPass(const std::string& shaderName, const std::shared_ptr<IPassSettings> settings):shaderName(shaderName), settings(settings)
+	{
+		CIRCE_INFO("Initializing rendering pass.");
+	}
+	
+	RenderingPass::RenderingPass(const Shader& shader, const std::shared_ptr<IPassSettings> settings):m_shader(shader), settings(settings)
+	{
+		CIRCE_INFO("Initializing rendering pass.");
+	}
+	
+	RenderingPass::~RenderingPass()
+	{
+		CIRCE_INFO("Terminating rendering pass.");
+	}
+	
+	void RenderingPass::updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera)
+	{}
+	
+	void RenderingPass::renderAll(const Camera& camera)
 	{
 		if(active)
 		{
 			render(camera);
 		}
 		
-		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		if(std::shared_ptr<RenderingPass> next = m_next.lock())
 		{
 			next->renderAll(camera);
 		}
 	}
 	
-	void IRenderingPass::init(const std::shared_ptr<Assets>& assets)
+	void RenderingPass::render(const std::shared_ptr<EntityData>& entity)
+	{
+		m_shader->update(entity->getMaterial());
+		entity->draw(1);
+	}
+	
+	void RenderingPass::render(const Camera& camera)
+	{
+		bind();
+		
+		for(std::shared_ptr<EntityData> entity : entities)
+		{
+			updateEntity(entity, camera);
+			render(entity);
+		}
+
+		unbind();
+	}
+	
+	void RenderingPass::setShader(const Shader& shader)
+	{
+		m_shader=shader;
+	}
+	
+	void RenderingPass::init(const std::shared_ptr<Assets>& assets)
 	{
 		initAssets(assets);
-		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		if(std::shared_ptr<RenderingPass> next = m_next.lock())
 		{
 			next->init(assets);
 		}
 	}
 	
-	void IRenderingPass::addNext(const std::shared_ptr<IRenderingPass> nextPass)
+	void RenderingPass::initAssets(const std::shared_ptr<Assets>& assets)
 	{
-		if(std::shared_ptr<IRenderingPass> next = m_next.lock())
+		m_shader = assets->getShader(shaderName);
+		m_assets = assets;	
+	}
+	
+	std::shared_ptr<Assets> RenderingPass::getAssets()
+	{
+		return m_assets;
+	}
+	
+	void RenderingPass::addNext(const std::shared_ptr<RenderingPass> nextPass)
+	{
+		if(std::shared_ptr<RenderingPass> next = m_next.lock())
 		{
 			nextPass->addNext(next);
 			m_next = nextPass;
@@ -131,61 +190,62 @@ namespace Medusa
 		}
 	}
 	
-	std::shared_ptr<RenderingEntity> IRenderingPass::addEntity(const std::string& meshName, const std::string& textureName, const std::shared_ptr<Transform<3>>& transform)
-	{
-		return NULL;
-	}
-	
-	std::shared_ptr<RenderingEntity> IRenderingPass::addEntity(const std::string& meshName, const std::shared_ptr<Transform<3>>& transform)
-	{
-		return NULL;
-	}
-	
-	void IRenderingPass::setActive(const bool& isActive)
+	void RenderingPass::setActive(const bool& isActive)
 	{
 		active = isActive;
 	}
 	
+	void RenderingPass::bind()
+	{
+		m_shader->bind();
+		settings->start();
+	}		
+	
+	void RenderingPass::unbind()
+	{
+		settings->end();
+	}
+			
+			
 	
 	
-	
-	GeometryPass::GeometryPass():RenderingPass("GeometryPass", false, true, true)
+	GeometryPass::GeometryPass():RenderingPass("GeometryPass", std::make_shared<GLPassSettings>(false, true, true))
 	{}
 	
-	void GeometryPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	void GeometryPass::updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera)
 	{
 		entity->updateModel();
 		entity->updateMVP(camera.getProjectionMatrix()*camera.getViewMatrix());
 	}
 	
-	std::shared_ptr<RenderingEntity> GeometryPass::addEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform<3>>& transform)
+	RenderingEntity GeometryPass::addEntity(const std::string& mesh, const std::string& texture)
 	{
-		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity(RenderingPass::getAssets()->getMesh(mesh, Medusa::TRIANGLE_RENDERING), transform);
-		entity->setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
+		RenderingEntity entity = RenderingPass::createEntity<RenderingEntity>(RenderingPass::getAssets()->getMesh(mesh, Medusa::TRIANGLE_RENDERING));
+		entity.setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
 		return entity;
 	}
 
 
 
 
-	DebugPass::DebugPass():RenderingPass("DebugDisplay", false, true, false)
+	DebugPass::DebugPass():RenderingPass("DebugDisplay", std::make_shared<GLPassSettings>(false, true, false))
 	{
 		
 	}
 			
-	void DebugPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	void DebugPass::updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera)
 	{
 		entity->setUniform<Circe::Vec3>("objectColor", Circe::Vec3(0.5f, 1.0f, 1.0f));
 		geometryPass.updateEntity(entity, camera);
 	}
 	
-	std::shared_ptr<RenderingEntity> DebugPass::addEntity(const std::string& mesh, const std::shared_ptr<Transform<3>>& transform)
+	RenderingEntity DebugPass::addEntity(const std::string& mesh)
 	{
-		return RenderingPass::createEntity(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING), transform);
+		return RenderingPass::createEntity<RenderingEntity>(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING));
 	}
 	
 	void DebugPass::setLineThickness(const float& thickness)
 	{
-		settings.setLineThickness(thickness);
+		settings->setLineThickness(thickness);
 	}
 }

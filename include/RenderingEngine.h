@@ -21,7 +21,7 @@ namespace Medusa
 			
 			~RenderingEngine();
 			
-			void init(const std::shared_ptr<IRenderingPass> geoPass, const std::shared_ptr<IRenderingPass> ppPass, const std::shared_ptr<Assets> assets);
+			void init(const std::shared_ptr<RenderingPass> geoPass, const std::shared_ptr<RenderingPass> ppPass, const std::shared_ptr<Assets> assets);
 			
 			void draw(const int& width, const int& height);
 			
@@ -30,7 +30,7 @@ namespace Medusa
 		private:
 			Camera camera;
 			FrameBuffer framebuffer;
-			std::shared_ptr<IRenderingPass> geometryPass;
-			std::shared_ptr<IRenderingPass> postProcessPass;
+			std::shared_ptr<RenderingPass> geometryPass;
+			std::shared_ptr<RenderingPass> postProcessPass;
 	};
 }

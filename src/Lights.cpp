@@ -2,7 +2,7 @@
 
 namespace Medusa
 {		
-	Light::Light(const Mesh& mesh, const float& intensity, const Circe::Vec3& color):RenderingEntity(mesh), color(color)
+	Light::Light(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color):RenderingEntity(data), color(color)
 	{
 		setColor(color);
 		setIntensity(intensity);		
@@ -27,7 +27,7 @@ namespace Medusa
 	
 	
 
-	DirectionalLight::DirectionalLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction):Light(mesh, intensity, color)
+	DirectionalLight::DirectionalLight(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction):Light(data, intensity, color)
 	{
 		setDirection(direction);
 	}
@@ -39,30 +39,24 @@ namespace Medusa
 	
 	
 	
-	AmbientLight::AmbientLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color):Light(mesh, intensity, color)
+	AmbientLight::AmbientLight(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color):Light(data, intensity, color)
 	{}
 	
-	DirectionalLightPass::DirectionalLightPass():RenderingPass("DirectionalLight", true, false, false)
+	DirectionalLightPass::DirectionalLightPass():RenderingPass("DirectionalLight", std::make_shared<GLPassSettings>(true, false, false))
 	{}
 	
-	void DirectionalLightPass::updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera)
-	{}
-	
-	void DirectionalLightPass::addEntity(const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction)
+	DirectionalLight DirectionalLightPass::addEntity(const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction)
 	{
 		Mesh screenMesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
-		RenderingPass::createEntity(screenMesh, intensity, color, direction);
+		return RenderingPass::createEntity<DirectionalLight>(screenMesh, intensity, color, direction);
 	}
 	
-	AmbientLightPass::AmbientLightPass():RenderingPass("AmbientLight", true, false, false)
+	AmbientLightPass::AmbientLightPass():RenderingPass("AmbientLight", std::make_shared<GLPassSettings>(true, false, false))
 	{}
 
-	void AmbientLightPass::updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera)
-	{}
-
-	void AmbientLightPass::addEntity(const float& intensity, const Circe::Vec3& color)
+	AmbientLight AmbientLightPass::addEntity(const float& intensity, const Circe::Vec3& color)
 	{
 		Mesh screenMesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
-		RenderingPass::createEntity(screenMesh, intensity, color);
+		return RenderingPass::createEntity<AmbientLight>(screenMesh, intensity, color);
 	}
 }

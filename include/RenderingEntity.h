@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include <Circe/Circe.h>
+#include <map>
 #include <vector>
 #include <iterator>
 
@@ -12,16 +13,16 @@ namespace Medusa
 	using namespace std;
 	using namespace Circe;
 	
-	class RenderingEntity
+	class EntityData
 	{
 		public:
-			RenderingEntity(const Mesh& mesh, const shared_ptr<Transform<3>>& transform);
+			EntityData(const Mesh& mesh);
 			
-			RenderingEntity(const Mesh& mesh);
+			EntityData(const EntityData& other);
 			
-			~RenderingEntity();
+			~EntityData();
 
-			virtual void draw(const int& culling);
+			void draw(const int& culling);
 			
 			template<class T>
 			void setUniform(const std::string& name, const T& value)
@@ -37,23 +38,80 @@ namespace Medusa
 			
 			std::shared_ptr<Material> getMaterial() const;
 
-			void attachTo(const std::shared_ptr<Transform<3>>& parentTransform);
+			//void attachTo(const std::shared_ptr<Transform3>& parentTransform);
 			
 			void setVisibility(const bool& visibility);
 			
 			int getId() const;
 			
-			void setTransform(const std::shared_ptr<Transform<3>>& transform);
+			void setTransform(const Transform3& transform);
+			
+			Direction3 getSize() const;
+			
+			void setSize(const Vec3& size);
+			
+			Position3 getPosition() const;
+			
+			void setPosition(const Vec3& position);
+			
+			void attachTo(const std::shared_ptr<EntityData>& parentEntity);
 			
 		private:
 			Mesh m_mesh;
-			weak_ptr<Transform<3>> m_transform;
+			Transform3 m_transform;
 			shared_ptr<Material> material;
-			static int allid;
-			int id;
+			static int allid;			
+			const int id;
 			bool visible;
+			std::weak_ptr<EntityData> parent;
 			
-			Mat<4> getTransformMatrix() const;	
+			Mat<4> getTransformMatrix() const;
+	};
+	
+	//Handler/Proxy class for EntityData
+	class RenderingEntity
+	{
+		public:
+			RenderingEntity(const std::shared_ptr<EntityData> entityData);
+			
+			RenderingEntity(const RenderingEntity& other);
+			
+			virtual void draw(const int& culling);
+			
+			template<class T>
+			void setUniform(const std::string& name, const T& value)
+			{
+				entity->setUniform<T>(name, value);
+			}
+			
+			void updateModel();
+			
+			void updateMVP(const Circe::Mat<4>& viewProjection);
+			
+			void setTexture(const TextureType& type, const Texture& texture);
+			
+			std::shared_ptr<Material> getMaterial() const;
+
+			//void attachTo(const std::shared_ptr<Transform3>& parentTransform);
+			
+			void setVisibility(const bool& visibility);
+			
+			int getId() const;
+			
+			void setTransform(const Transform3& transform);
+			
+			Direction3 getSize() const;
+			
+			void setSize(const Vec3& size);
+			
+			Position3 getPosition() const;
+			
+			void setPosition(const Vec3& position);
+			
+			void attachTo(const RenderingEntity& parentEntity);
+			
+		private:
+			std::shared_ptr<EntityData> entity;
 	};
 	
 	class EntityLoader
@@ -109,8 +167,13 @@ namespace Medusa
 		public:
 			int add(std::shared_ptr<T>& entity)
 			{
-				entities.push_back(std::move(entity));
+				entities.insert(std::pair<int, std::shared_ptr<T>>(entity->getId(), std::move(entity)));
 				return entities.size() - 1;
+			}
+			
+			void remove(const int& id)
+			{
+				entities.erase(id);
 			}
 			
 			std::shared_ptr<T> get(const int& id)
@@ -132,9 +195,14 @@ namespace Medusa
 			{
 				return entities[iterator.getIndex()];
 			}
+			
+			std::shared_ptr<T> operator()(const int& id)
+			{
+				return get(id);
+			}
 		
 		private:
-			std::vector<std::shared_ptr<T>> entities;
+			std::map<int, std::shared_ptr<T>> entities;
 			friend class RenderingIterator<T>;
 	};
 }

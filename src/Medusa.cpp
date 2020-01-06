@@ -50,9 +50,9 @@ namespace Medusa
 		engine.draw(width, height);		
 	}
 	
-	void MedusaInterface::addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform<3>> transform)
+	RenderingEntity MedusaInterface::addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform3> transform)
 	{
-		geometryPass->addEntity(mesh, texture, transform);
+		return geometryPass->addEntity(mesh, texture);
 	}
 	
 	std::shared_ptr<GUI> MedusaInterface::getGUI() const
@@ -60,7 +60,7 @@ namespace Medusa
 		return gui;
 	}
 	
-	void MedusaInterface::addDebugEntity(const Shape& shape, std::shared_ptr<Transform<3>> transform)
+	RenderingEntity MedusaInterface::addDebugEntity(const Shape& shape, std::shared_ptr<Transform3> transform)
 	{
 		std::string meshFile;
 		if(shape == Shape::TRIANGLE)
@@ -79,7 +79,7 @@ namespace Medusa
 		{
 			meshFile = "hexagon.obj";
 		}
-		debugPass->addEntity(meshFile, transform);
+		return debugPass->addEntity(meshFile);
 	}
 	
 	void MedusaInterface::setDebugLineThickness(const float& thickness)

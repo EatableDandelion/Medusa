@@ -2,77 +2,75 @@
 
 namespace Medusa
 {
-	HUDPass::HUDPass():RenderingPass("HUD", true, false, false)
+	HUDPass::HUDPass():RenderingPass("HUD", std::make_shared<GLPassSettings>(true, false, false))
 	{}
 	
-	void HUDPass::updateEntity(std::shared_ptr<RenderingEntity>& entity, const Camera& camera)
+	void HUDPass::updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera)
 	{
 		entity->updateModel();
 	}
 	
-	std::shared_ptr<RenderingEntity> HUDPass::addEntity(const  std::string& texture, const shared_ptr<Transform<3>>& transform)
+	Panel::Panel(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingEntity(entityData)
 	{
-		Mesh screenMesh = RenderingPass::getAssets()->getMesh("plane.obj", Medusa::TRIANGLE_RENDERING);
-		std::shared_ptr<RenderingEntity> entity = RenderingPass::createEntity(screenMesh, transform);
-		entity->setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
-		entity->setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
-		entity->setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
-		entity->setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
-		return entity;
+		RenderingEntity::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
+		RenderingEntity::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
+		RenderingEntity::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
+		Transform3 transform;
+		transform.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, position(0), position(1), 0.0f));
+		transform.setFrameScale(Circe::Direction3(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
+		RenderingEntity::setTransform(transform);
 	}
 	
-	Panel::Panel(const Circe::Vec2& position, const Circe::Vec2& dimension, const std::shared_ptr<RenderingEntity>& entity):m_entity(entity)
+	/*Transform<3> Panel::getTransform() const
 	{
-		transform = std::make_shared<Transform<3>>();
-		transform->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, position(0), position(1), 0.0f));
-		transform->setFrameScale(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
-		entity->setTransform(transform);
-	}
-	
-	std::shared_ptr<RenderingEntity> Panel::getEntity() const
-	{
-		return m_entity;
-	}
-	
-	std::shared_ptr<Transform<3>> Panel::getTransform() const
-	{
-		return transform;
-	}
+		return m_entity.getTransform();
+	}*/
 	
 	void Panel::setColor(const Circe::Vec3& color)
 	{
-		m_entity->setUniform<Circe::Vec3>("setColor", color);
+		RenderingEntity::setUniform<Circe::Vec3>("setColor", color);
 	}
 	
-	Label::Label(const Circe::Vec2& position, const Circe::Vec2& dimension, const Circe::Vec3& color):color(color)
+	
+	Label::Label(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingEntity(entityData), color(1.0f, 1.0f, 1.0f)
 	{
-		transform = std::make_shared<Transform<3>>();
-		transform->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, position(0)-dimension(0), position(1)-dimension(1), 0.0f));
-		transform->setFrameScale(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
+		RenderingEntity::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
+		RenderingEntity::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
+		RenderingEntity::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
+		transform.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, position(0)-dimension(0), position(1)-dimension(1), 0.0f));
+		transform.setFrameScale(Circe::Direction3(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
+		RenderingEntity::setTransform(transform);
+		setVisibility(false);
 	}
 	
-	Panel Label::addCharacter(const std::shared_ptr<RenderingEntity>& entity)
+	void Label::addCharacter(Panel& character, const float& offset)
 	{
-		Panel character(Circe::Vec2(charPos, 0.0f), Circe::Vec2(1.0f, 1.0f), entity);
-		character.getTransform()->attachTo(transform);
-		charPos+=2.0f;
+		//Panel character(Circe::Vec2(charPos, 0.0f), Circe::Vec2(1.0f, 1.0f), entity);
+		//character.getTransform().attachTo(transform);
+		//charPos+=2.0f;
+		//character.setTransform(transform);
 		characters.push_back(character);
-		return character;
 	}
 	
 	void Label::setText(const std::string& text)
 	{
-		for(int i = 0; i<Circe::min<int>(text.length(),characters.size()); i++)
+		//for(int i = 0; i<Circe::min<int>(text.length(),characters.size()); i++)
+		int i = 0;
+		for(Panel character : characters)
 		{		
-			int c = (int)text[i];
-			characters[i].getEntity()->setVisibility(c != (int)(' '));
-			characters[i].getEntity()->setUniform<Circe::Vec2>("textOffset", Circe::Vec2((c%16)/16.0f, (c/16)/16.0f));
-			characters[i].getEntity()->setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f/16.0f, 1.0f/16.0f));
-			characters[i].setColor(color);
-		}
-		for(int i = text.length(); i<characters.size(); i++)
-		{
-			characters[i].getEntity()->setVisibility(false);
+			if(i<text.length())
+			{
+				int c = (int)text[i];
+				character.setVisibility(c != (int)(' '));
+				character.setUniform<Circe::Vec2>("textOffset", Circe::Vec2((c%16)/16.0f, (c/16)/16.0f));
+				character.setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f/16.0f, 1.0f/16.0f));
+				character.setColor(color);
+			}
+			else
+			{
+				character.setVisibility(false);
+			}
+			i++;
 		}
 	}
 	
@@ -158,7 +156,7 @@ namespace Medusa
 	
 	
 	
-	Button::Button(const Panel& panel, const std::function<void(void)>& action):SelectableArea(std::make_shared<AABBArea>(panel.getTransform()->getFramePosition()(0)-panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(0)+panel.getTransform()->getFrameScale()(0), panel.getTransform()->getFramePosition()(1)-panel.getTransform()->getFrameScale()(1), panel.getTransform()->getFramePosition()(1)+panel.getTransform()->getFrameScale()(1))), panel(panel)
+	Button::Button(const Panel& panel, const std::function<void(void)>& action):SelectableArea(std::make_shared<AABBArea>(panel.getPosition()(0)-panel.getSize()(0), panel.getPosition()(0)+panel.getSize()(0), panel.getPosition()(1)-panel.getSize()(1), panel.getPosition()(1)+panel.getSize()(1))), panel(panel)
 	{
 		listener = std::make_shared<FunctionalListener>(action);
 		SelectableArea::addSelectionListener(listener);
@@ -169,14 +167,15 @@ namespace Medusa
 		panel.setColor(color);
 	}
 	
-	GUI::GUI(const std::shared_ptr<IRenderingPass>& hudPass):hudPass(hudPass)
+	GUI::GUI(const std::shared_ptr<HUDPass>& hudPass):hudPass(hudPass)
 	{}
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
 	{
-		if(std::shared_ptr<IRenderingPass> pass = hudPass.lock())
+		if(std::shared_ptr<HUDPass> pass = hudPass.lock())
 		{
-			Panel newPanel(position, dimension, pass->addEntity(texture, NULL));
+			//Panel newPanel(position, dimension, pass->addEntity(texture));
+			Panel newPanel = pass->addEntity<Panel>(texture, position, dimension);
 			panels.push_back(newPanel);
 			return newPanel;
 		}
@@ -185,12 +184,18 @@ namespace Medusa
 	
 	Label GUI::addLabel(const int& nbChar, const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)
 	{
-		if(std::shared_ptr<IRenderingPass> pass = hudPass.lock())
+		if(std::shared_ptr<HUDPass> pass = hudPass.lock())
 		{
-			Label newLabel(position, dimension);
+			//Label newLabel(position, dimension);
+			float charPos = 0.0f;
+			Label newLabel = pass->addEntity<Label>(texture, position, dimension);
 			for(int i = 0; i<nbChar; i++)
 			{
-				newLabel.addCharacter(pass->addEntity(texture, NULL));
+				Panel character = pass->addEntity<Panel>(texture, Circe::Vec2(charPos, 0.0f), Circe::Vec2(1.0f, 1.0f));
+				newLabel.addCharacter(character, charPos);
+				charPos+=0.1f;
+				character.setPosition(Vec3(charPos, 0.0f, 0.0f));
+				character.attachTo(newLabel);
 			}
 			labels.push_back(newLabel);
 			return newLabel;
@@ -223,14 +228,15 @@ namespace Medusa
 
 	Button GUI::addButton(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension, const std::function<void(void)>& action)
 	{
-		if(std::shared_ptr<IRenderingPass> pass = hudPass.lock())
+		if(std::shared_ptr<HUDPass> pass = hudPass.lock())
 		{
-			Panel newPanel(position, dimension, pass->addEntity(texture, NULL));
+			//Panel newPanel(position, dimension, pass->addEntity(texture));
+			Panel newPanel = pass->addEntity<Panel>(texture, position, dimension);
 			Button newButton(newPanel, action);
 			addSelectableArea(newButton);
 			return newButton;
 		}
-		return Button(Panel(position, dimension, nullptr), action);
+		return Button(Panel(NULL, position, dimension), action);
 	}
 	
 	void GUI::setFont(const std::string& newFont)

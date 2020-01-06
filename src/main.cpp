@@ -69,22 +69,25 @@ int main(void)
 	window.getMouse().addListener(gui);
 	
 	
-	shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
+	/*shared_ptr<Transform<3>> transform1(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform2(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform3(make_shared<Transform<3>>());
 	shared_ptr<Transform<3>> transform4(make_shared<Transform<3>>());
-	shared_ptr<Transform<3>> transform5(make_shared<Transform<3>>());
+	shared_ptr<Transform<3>> transform5(make_shared<Transform<3>>());*/
 	
-	transform2->setFrameRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
+	Circe::Transform3 transform1, transform2, transform3, transform4, transform5;
+	
+	transform2.setFrameRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
 	
 	
-	directionalLights->addEntity(0.5f, Circe::Vec3(1.0f,1.0f,1.0f), Circe::Vec3(1.0f,0.8f,1.0f));
-	ambientLights->addEntity(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));	
+	DirectionalLight directionalLight = directionalLights->addEntity(0.5f, Circe::Vec3(1.0f,1.0f,1.0f), Circe::Vec3(1.0f,0.8f,1.0f));
 	
-	geometryPass->addEntity("plane.obj", "Warframe0000.jpg", transform1);
-	//geometryPass->addEntity("monkey.obj", "Warframe0002.jpg", transform2);
-	debugPass->addEntity("square.obj", transform3);
-	debugPass->addEntity("hexagon.obj", transform4);
+	AmbientLight ambient = ambientLights->addEntity(0.1f, Circe::Vec3(1.0f,1.0f,1.0f));	
+	
+	RenderingEntity entity1 = geometryPass->addEntity("plane.obj", "Warframe0000.jpg");
+	RenderingEntity entity2 = geometryPass->addEntity("monkey.obj", "Warframe0002.jpg");
+	RenderingEntity entity3 = debugPass->addEntity("square.obj");
+	RenderingEntity entity4 = debugPass->addEntity("hexagon.obj");
 	
 	Label label = gui->addLabel(4, "font.png", Circe::Vec2(-0.8f, 0.9f), Circe::Vec2(0.05f, 0.05f));
 	label.setText("Test");
@@ -113,16 +116,22 @@ int main(void)
 	test.load("../../Resource/Model/", "monkey.mod");
 	
 	
-	transform1->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 6.0f));
-	transform2->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 2.0f));
-	transform3->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 1.0f, 1.0f, 1.5f));
-	transform4->translate(Circe::Direction<3>(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 4.0f));
-	transform2->resize(0.5f);
-	transform3->resize(0.1f);
-	transform4->resize(0.1f);
-	transform5->resize(0.1f);
+	transform1.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 6.0f));
+	transform2.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 2.0f));
+	transform3.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, 1.0f, 1.0f, 1.5f));
+	transform4.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 4.0f));
+	transform2.resize(0.5f);
+	transform3.resize(0.1f);
+	transform4.resize(0.1f);
+	//transform5.resize(0.1f);
+	
+	entity1.setTransform(transform1);
+	entity2.setTransform(transform2);
+	entity3.setTransform(transform3);
+	entity4.setTransform(transform4);
+	//entity5.setTransform(transform5);
+	
 
-	std::cout << std::endl;
 	while(!window.shouldClose())
 	{	
 		CIRCE_PROFILEBLOCK;
@@ -141,7 +150,7 @@ int main(void)
 			{CIRCE_PROFILEBLOCK;		
 				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
 				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
-				label.setText(std::to_string(execTime));
+				//label.setText(std::to_string(execTime));
 			}	
 				
 			{CIRCE_PROFILEBLOCK;

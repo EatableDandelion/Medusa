@@ -25,9 +25,9 @@ namespace Medusa
 			
 			void draw(const int& width, const int& height);
 			
-			void addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform<3>> transform);
+			RenderingEntity addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform3> transform);
 			
-			void addDebugEntity(const Shape& shape, std::shared_ptr<Transform<3>> transform);
+			RenderingEntity addDebugEntity(const Shape& shape, std::shared_ptr<Transform3> transform);
 			
 			std::shared_ptr<GUI> getGUI() const;
 			

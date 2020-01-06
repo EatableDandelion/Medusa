@@ -15,7 +15,7 @@ namespace Medusa
 		CIRCE_INFO("Rendering engine terminated");
 	}
 	
-	void RenderingEngine::init(const std::shared_ptr<IRenderingPass> geoPass, const std::shared_ptr<IRenderingPass> ppPass, const std::shared_ptr<Assets> assets)
+	void RenderingEngine::init(const std::shared_ptr<RenderingPass> geoPass, const std::shared_ptr<RenderingPass> ppPass, const std::shared_ptr<Assets> assets)
 	{
 		geometryPass = geoPass;
 		postProcessPass = ppPass;

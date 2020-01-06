@@ -12,7 +12,7 @@ namespace Medusa
 	class Light : public RenderingEntity
 	{
 		public:
-			Light(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
+			Light(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color);
 			
 			void setIntensity(const float& intensity);
 			
@@ -25,7 +25,7 @@ namespace Medusa
 	class DirectionalLight : public Light
 	{
 		public:
-			DirectionalLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction);
+			DirectionalLight(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color, const Circe::Vec3& direction);
 		
 			void setDirection(const Circe::Vec3& direction);
 	};
@@ -33,33 +33,27 @@ namespace Medusa
 	class AmbientLight : public Light
 	{
 		public:
-			AmbientLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
+			AmbientLight(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color);
 	};
-	/*
-	class PointLight : public Light
-	{
-		public:
-			PointLight(const Mesh& mesh, const float& intensity, const Circe::Vec3& color);
-	};*/
 	
-	class DirectionalLightPass : public RenderingPass<DirectionalLight, GLPassSettings>
+	class DirectionalLightPass : public RenderingPass
 	{
 		public:
 			DirectionalLightPass();
 		
-			void updateEntity(std::shared_ptr<DirectionalLight>& entity, const Camera& camera);
+			//void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 		
-			void addEntity(const float& intensity, const Circe::Vec<3>& color, const Circe::Vec<3>& direction);
+			DirectionalLight addEntity(const float& intensity, const Circe::Vec<3>& color, const Circe::Vec<3>& direction);
 	};
 	
-	class AmbientLightPass : public RenderingPass<AmbientLight, GLPassSettings>
+	class AmbientLightPass : public RenderingPass
 	{
 		public:
 			AmbientLightPass();
 		
-			void updateEntity(std::shared_ptr<AmbientLight>& entity, const Camera& camera);
+			//void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 		
-			void addEntity(const float& intensity, const Circe::Vec<3>& color);
+			AmbientLight addEntity(const float& intensity, const Circe::Vec<3>& color);
 	};
 	/*
 	class PointLightPass : public RenderingPass<PointLightPass>
