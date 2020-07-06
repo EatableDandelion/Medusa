@@ -4,24 +4,34 @@
 #include "Shader.h"
 #include "Camera.h"
 #include <Circe/Circe.h>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <iterator>
+#include "World.h"
 
 namespace Medusa
 {
 	using namespace std;
 	using namespace Circe;
 	
-	class EntityData
+	/*class SpriteComponent : public Component
+	{
+		public:
+			SpriteComponent(const std::string& name);
+			~SpriteComponent();
+			virtual void update(World& world, EntityHandle& entity);
+		
+		private:
+			
+	};*/
+	
+	class EntityData : public Entity
 	{
 		public:
 			EntityData(const Mesh& mesh);
 			
 			EntityData(const EntityData& other);
 			
-			~EntityData();
-
 			void draw(const int& culling);
 			
 			template<class T>
@@ -38,43 +48,22 @@ namespace Medusa
 			
 			std::shared_ptr<Material> getMaterial() const;
 
-			//void attachTo(const std::shared_ptr<Transform3>& parentTransform);
-			
 			void setVisibility(const bool& visibility);
-			
-			int getId() const;
-			
-			void setTransform(const Transform3& transform);
-			
-			Direction3 getSize() const;
-			
-			void setSize(const Vec3& size);
-			
-			Position3 getPosition() const;
-			
-			void setPosition(const Vec3& position);
-			
-			void attachTo(const std::shared_ptr<EntityData>& parentEntity);
-			
+
 		private:
 			Mesh m_mesh;
-			Transform3 m_transform;
-			shared_ptr<Material> material;
-			static int allid;			
-			const int id;
-			bool visible;
-			std::weak_ptr<EntityData> parent;
+			shared_ptr<Material> material;			
+			bool visible;			
 			
-			Mat<4> getTransformMatrix() const;
 	};
 	
 	//Handler/Proxy class for EntityData
-	class RenderingEntity
+	class RenderingHandler
 	{
 		public:
-			RenderingEntity(const std::shared_ptr<EntityData> entityData);
+			RenderingHandler(const std::shared_ptr<EntityData> entityData);
 			
-			RenderingEntity(const RenderingEntity& other);
+			RenderingHandler(const RenderingHandler& other);
 			
 			virtual void draw(const int& culling);
 			
@@ -108,7 +97,9 @@ namespace Medusa
 			
 			void setPosition(const Vec3& position);
 			
-			void attachTo(const RenderingEntity& parentEntity);
+			void setRotation(const Vec3& leftAxis, const Vec3& fwdAxis);
+			
+			void attachTo(const RenderingHandler& parentEntity);
 			
 		private:
 			std::shared_ptr<EntityData> entity;
@@ -119,56 +110,24 @@ namespace Medusa
 		public:
 			void load(const std::string& folderLocation, const std::string& fileName);//, RenderingEntity& entity);
 			
-			void unload(RenderingEntity& entity);
+			void unload(RenderingHandler& entity);
 		private:
 			void loadComponent(const std::string& type, const std::string& value);
 	};
 	
 	template<typename T> 
-	class RenderingCollection;
+	class EntityCollection;
 	
 	template<typename T>
-	class RenderingIterator
+	class EntityCollection
 	{
-		public:
-			RenderingIterator(RenderingCollection<T>& collection, const int& startIndex):collection(collection), index(startIndex)
-			{}
-			
-			RenderingIterator<T> operator++()
-			{
-				index++;
-				return *this;
-			}
-			
-			bool operator!=(const RenderingIterator& other) const
-			{
-				return index != other.index;
-			}
-			
-			std::shared_ptr<T>& operator*()
-			{
-				return collection.entities[index];
-			}
-			
-			int getIndex() const
-			{
-				return index;
-			}
-			
-		private:
-			int index;
-			RenderingCollection<T>& collection;
-	};
-	
-	
-	template<typename T>
-	class RenderingCollection
-	{
+		typedef typename std::unordered_map<int, std::shared_ptr<T>>::iterator iterator;
 		public:
 			int add(std::shared_ptr<T>& entity)
 			{
-				entities.insert(std::pair<int, std::shared_ptr<T>>(entity->getId(), std::move(entity)));
-				return entities.size() - 1;
+				int id = entity->getId();
+				entities.insert(std::pair<int, std::shared_ptr<T>>(id, entity));
+				return id;
 			}
 			
 			void remove(const int& id)
@@ -178,22 +137,17 @@ namespace Medusa
 			
 			std::shared_ptr<T> get(const int& id)
 			{
-				return entities[id];
+				return entities.at(id);
 			}
 			
-			RenderingIterator<T> begin()
+			iterator begin()
 			{
-				return RenderingIterator<T>(*this, 0);
+				return entities.begin();
 			}
 			
-			RenderingIterator<T> end()
+			iterator end()
 			{
-				return RenderingIterator<T>(*this, entities.size());
-			}	
-			
-			std::shared_ptr<T> get(const RenderingIterator<T>& iterator)
-			{
-				return entities[iterator.getIndex()];
+				return entities.end();
 			}
 			
 			std::shared_ptr<T> operator()(const int& id)
@@ -202,7 +156,7 @@ namespace Medusa
 			}
 		
 		private:
-			std::map<int, std::shared_ptr<T>> entities;
-			friend class RenderingIterator<T>;
+			std::unordered_map<int, std::shared_ptr<T>> entities;
+			
 	};
 }

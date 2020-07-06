@@ -27,7 +27,7 @@ namespace Medusa
 			}
 	};
 	
-	class Panel : public RenderingEntity
+	class Panel : public RenderingHandler
 	{
 		public:
 			Panel(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension);
@@ -35,7 +35,7 @@ namespace Medusa
 			void setColor(const Circe::Vec3& color);
 	};
 	
-	class Label : public RenderingEntity
+	class Label : public RenderingHandler
 	{
 		public:
 			Label(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension);

@@ -2,7 +2,7 @@
 
 namespace Medusa
 {
-	Assets::Assets(const std::string& meshFolder, const std::string& textureFolder, const std::string& shaderFolder, const VertexSpecs& specs):shaderResources(shaderFolder), meshResources(meshFolder), textureResources(textureFolder), specs(specs)
+	Assets::Assets(const VertexSpecs& specs):specs(specs)
 	{}
 	
 	Assets::~Assets()
@@ -12,19 +12,57 @@ namespace Medusa
 		meshResources.unloadAll();
 	}
 	
-	void Assets::loadMesh(const std::string& name, const int& faceShading)
+	void Assets::loadDirectory(const char* directory)
 	{
-		meshResources.load(name, faceShading);
-	}
+		struct dirent *entry;
+		DIR *dir = opendir(directory);
+		while((entry = readdir(dir)) != NULL)
+		{
+			std::string fileName = entry->d_name;
+			std::size_t dotPos = fileName.find(".");
 			
-	void Assets::loadTexture(const std::string& name)
-	{
-		textureResources.load(name);
+			if(dotPos == std::string::npos) 
+			{//No extension, assume it's a directory
+				char subDir[32];
+				strcpy(subDir, directory);
+				strcat(subDir, fileName.c_str());
+				strcat(subDir, "/");
+				loadDirectory(subDir);
+			}
+			else 
+			{//else it's a file
+				std::string extension = fileName.substr(dotPos+1, fileName.length());			
+				if(extension == "obj")
+				{
+					loadMesh(directory, fileName);
+				}
+				else if(extension == "png" || extension == "jpg" || extension == "jpeg")
+				{
+					loadTexture(directory, fileName);
+				}
+				else if(extension == "vs")
+				{
+					loadShader(directory, fileName.substr(0, dotPos));
+				}
+			}
+		
+		}
+		closedir(dir);
 	}
 	
-	void Assets::loadShader(const std::string& name)
+	void Assets::loadMesh(const std::string& folder, const std::string& name)
 	{
-		shaderResources.load(name, specs);
+		meshResources.load(folder, name);
+	}
+			
+	void Assets::loadTexture(const std::string& folder, const std::string& name)
+	{
+		textureResources.load(folder, name);
+	}
+	
+	void Assets::loadShader(const std::string& folder, const std::string& name)
+	{
+		shaderResources.load(folder, name, specs);
 	}
 	
 	Mesh Assets::getMesh(const std::string& name, const MeshType& meshType) const

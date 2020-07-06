@@ -17,21 +17,37 @@ namespace Medusa
 	class MedusaInterface
 	{
 		public:
-			MedusaInterface(const int& windowWidth, const int& windowHeight);
+			MedusaInterface();
 			
-			void load(const std::string& meshFolder, const std::string& textureFolder, const std::string& shaderFolder);
+			void load(const char* resourceDirectory);
 			
 			void listenToInput(Mouse& mouse);
 			
 			void draw(const int& width, const int& height);
 			
-			RenderingEntity addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform3> transform);
+			RenderingHandler newWorldEntity(const std::string& mesh, const std::string& texture);
 			
-			RenderingEntity addDebugEntity(const Shape& shape, std::shared_ptr<Transform3> transform);
+			void removeWorldEntity(const RenderingHandler& entity);
+
+			DirectionalLight newDirectionalLight(const float& intensity, const float& r, const float& g, const float& b, const float& directionX, const float& directionY, const float& directionZ);
 			
-			std::shared_ptr<GUI> getGUI() const;
+			AmbientLight newAmbientLight(const float& intensity, const float& r, const float& g, const float& b);
+			
+			RenderingHandler newDebugEntity(const Shape& shape);
+			
+			void removeDebugEntity(const RenderingHandler& entity);
 			
 			void setDebugLineThickness(const float& thickness);
+			
+			Camera getCamera();
+			
+			Label newLabel(const std::string& text, const float& posX, const float& posY, const float& size);
+			
+			Panel newPanel(const std::string& texture, const float& posX, const float& posY, const float& sizeX, const float& sizeY);
+			
+			Button newButton(const std::string& texture, const float& posX, const float& posY, const float& sizeX, const float& sizeY, const std::function<void(void)>& action);
+			
+			void listenTo(Mouse& mouse);
 			
 		private:
 			RenderingEngine engine;

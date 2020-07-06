@@ -94,6 +94,8 @@ namespace Medusa
 			
 			~FrameBuffer();
 			
+			void reset(const int& width, const int& height);
+			
 			void bindForWrite();
 			
 			void bindForRead();

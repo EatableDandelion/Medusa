@@ -16,7 +16,7 @@ namespace Medusa
 	
 	Circe::Mat<4> Camera::getViewMatrix() const
 	{
-		Circe::Mat<4> rotationMatrix = Circe::Mat44::rotationMatrix(m_transform.getFrameRotation().getConjugate());
+		Circe::Mat<4> rotationMatrix = Circe::Mat44::rotationMatrix(m_transform.getFrameRotation());//.getConjugate());
 		Circe::Mat<4> positionMatrix = Circe::Mat44::positionMatrix(m_transform.getFramePosition()*(-1.0f));
 
 		return rotationMatrix*positionMatrix;

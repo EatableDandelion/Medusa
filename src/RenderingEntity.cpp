@@ -3,30 +3,38 @@
 
 namespace Medusa
 {	
-	int EntityData::allid=0;
 	
-	EntityData::EntityData(const Mesh& mesh): m_mesh(mesh), id(allid++), visible(true)
+	/*SpriteComponent::SpriteComponent()
+	{
+		
+	}
+	
+	SpriteComponent::~SpriteComponent()
+	{
+		
+	}
+	
+	void SpriteComponent::update(World& world, EntityHandle& entity)
+	{
+		
+	}*/
+	
+	EntityData::EntityData(const Mesh& mesh): Entity(), m_mesh(mesh), visible(true)
 	{
 		material = std::make_shared<Material>();
-		CIRCE_INFO("Initializing entity "+std::to_string(id));
 	}
-	
-	EntityData::EntityData(const EntityData& other):m_mesh(other.m_mesh), m_transform(other.m_transform), material(other.material), id(other.id), visible(other.visible)
+
+	EntityData::EntityData(const EntityData& other):Entity(other), m_mesh(other.m_mesh), material(other.material), visible(other.visible)
 	{}
-	
-	EntityData::~EntityData()
-	{
-		CIRCE_INFO("Terminating entity "+std::to_string(id));
-	}
 	
 	void EntityData::updateModel()
 	{
-		setUniform("Model", getTransformMatrix());
+		setUniform("Model", Entity::getTransformMatrix());
 	}
 	
 	void EntityData::updateMVP(const Circe::Mat<4>& viewProjection)
 	{
-		setUniform("MVP", viewProjection*getTransformMatrix());		
+		setUniform("MVP", viewProjection*Entity::getTransformMatrix());		
 	}
 	
 	void EntityData::draw(const int& culling)
@@ -40,10 +48,10 @@ namespace Medusa
 	void EntityData::setTexture(const TextureType& type, const Texture& texture)
 	{
 		material->setTexture(type, texture);
-	}
+	} 
 	
 	std::shared_ptr<Material> EntityData::getMaterial() const
-	{
+	{ 
 		return material;
 	}
 	
@@ -51,128 +59,80 @@ namespace Medusa
 	{
 		visible = visibility;
 	}
+	 
 	
-	Mat<4> EntityData::getTransformMatrix() const
-	{
-		if(std::shared_ptr<EntityData> papa = parent.lock())
-			return m_transform.getTransformMatrix()*papa->m_transform.getTransformMatrix();
-		return m_transform.getTransformMatrix();
-	}
-	
-	/*void EntityData::attachTo(const std::shared_ptr<Transform3>& parentTransform)
-	{
-		m_transform.attachTo(parentTransform);
-	}*/
-	
-	int EntityData::getId() const
-	{
-		return id;
-	}
-	
-	void EntityData::setTransform(const Transform3& transform)
-	{
-		m_transform = transform;
-	}
-	
-	Direction3 EntityData::getSize() const
-	{
-		return m_transform.getFrameScale();
-	}
-	
-	void EntityData::setSize(const Vec3& size)
-	{
-		m_transform.setFrameScale(size(0),size(1),size(2));
-	}
-	
-	Position3 EntityData::getPosition() const
-	{
-		return m_transform.getFramePosition();
-	}
-	
-	void EntityData::setPosition(const Vec3& position)
-	{
-		m_transform.setFramePosition(position(0),position(1),position(2));
-	}
-	
-	void EntityData::attachTo(const std::shared_ptr<EntityData>& parentEntity)
-	{
-		//m_transform.attachTo(std::shared_ptr<Transform3>(&(parentEntity->m_transform)));
-		parent = parentEntity;
-	}
-	
-	
-	RenderingEntity::RenderingEntity(const std::shared_ptr<EntityData> entityData):entity(entityData)
+	RenderingHandler::RenderingHandler(const std::shared_ptr<EntityData> entityData):entity(entityData)
 	{}
 	
-	RenderingEntity::RenderingEntity(const RenderingEntity& other):entity(other.entity)
+	RenderingHandler::RenderingHandler(const RenderingHandler& other):entity(other.entity)
 	{}
 			
-	void RenderingEntity::draw(const int& culling)
+	void RenderingHandler::draw(const int& culling)
 	{
 		entity->draw(culling);
 	}
 	
-	void RenderingEntity::updateModel()
+	void RenderingHandler::updateModel()
 	{
 		entity->updateModel();
 	}
 	
-	void RenderingEntity::updateMVP(const Circe::Mat<4>& viewProjection)
+	void RenderingHandler::updateMVP(const Circe::Mat<4>& viewProjection)
 	{
 		entity->updateMVP(viewProjection);
 	}
 	
-	void RenderingEntity::setTexture(const TextureType& type, const Texture& texture)
+	void RenderingHandler::setTexture(const TextureType& type, const Texture& texture)
 	{
 		entity->setTexture(type, texture);
 	}
 	
-	std::shared_ptr<Material> RenderingEntity::getMaterial() const
+	std::shared_ptr<Material> RenderingHandler::getMaterial() const
 	{
 		return entity->getMaterial();
 	}
-
-	/*void RenderingEntity::attachTo(const std::shared_ptr<Transform3>& parentTransform)
-	{
-		entity->attachTo(parentTransform);
-	}*/
 	
-	void RenderingEntity::setVisibility(const bool& visibility)
+	void RenderingHandler::setVisibility(const bool& visibility)
 	{
 		entity->setVisibility(visibility);
 	}
 	
-	int RenderingEntity::getId() const
+	int RenderingHandler::getId() const
 	{
 		return entity->getId();
 	}
 	
-	void RenderingEntity::setTransform(const Transform3& transform)
+	void RenderingHandler::setTransform(const Transform3& transform)
 	{
 		entity->setTransform(transform);
 	}
 	
-	Direction3 RenderingEntity::getSize() const
+	Direction3 RenderingHandler::getSize() const
 	{
 		return entity->getSize();
 	}
 	
-	void RenderingEntity::setSize(const Vec3& size)
+	void RenderingHandler::setSize(const Vec3& size)
 	{
 		entity->setSize(size);
 	}
 	
-	Position3 RenderingEntity::getPosition() const
+	Position3 RenderingHandler::getPosition() const
 	{
 		return entity->getPosition();
 	}
 	
-	void RenderingEntity::setPosition(const Vec3& position)
+	void RenderingHandler::setPosition(const Vec3& position)
 	{
 		entity->setPosition(position);
 	}
 	
-	void RenderingEntity::attachTo(const RenderingEntity& parentEntity)
+	void RenderingHandler::setRotation(const Vec3& leftAxis, const Vec3& fwdAxis)
+	{
+		entity->setRotation(leftAxis, fwdAxis);
+	}
+	
+	void RenderingHandler::attachTo(const RenderingHandler& parentEntity)
 	{
 		entity->attachTo(parentEntity.entity);
 	}
@@ -221,6 +181,6 @@ namespace Medusa
 		}
 	}
 	
-	void EntityLoader::unload(RenderingEntity& entity)
+	void EntityLoader::unload(RenderingHandler& entity)
 	{}
 }

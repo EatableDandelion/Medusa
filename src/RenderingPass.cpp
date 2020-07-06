@@ -141,16 +141,16 @@ namespace Medusa
 	
 	void RenderingPass::render(const Camera& camera)
 	{
-		bind();
+		bind(); 
 		
-		for(std::shared_ptr<EntityData> entity : entities)
+		for(auto& entity : entities)
 		{
-			updateEntity(entity, camera);
-			render(entity);
+			updateEntity(entity.second, camera);
+			render(entity.second);
 		}
 
-		unbind();
-	}
+		unbind(); 
+	} 
 	
 	void RenderingPass::setShader(const Shader& shader)
 	{
@@ -218,9 +218,9 @@ namespace Medusa
 		entity->updateMVP(camera.getProjectionMatrix()*camera.getViewMatrix());
 	}
 	
-	RenderingEntity GeometryPass::addEntity(const std::string& mesh, const std::string& texture)
+	RenderingHandler GeometryPass::addEntity(const std::string& mesh, const std::string& texture)
 	{
-		RenderingEntity entity = RenderingPass::createEntity<RenderingEntity>(RenderingPass::getAssets()->getMesh(mesh, Medusa::TRIANGLE_RENDERING));
+		RenderingHandler entity = RenderingPass::createEntity<RenderingHandler>(RenderingPass::getAssets()->getMesh(mesh, Medusa::TRIANGLE_RENDERING));
 		entity.setTexture(TextureType::DIFFUSE0, RenderingPass::getAssets()->getTexture(texture));
 		return entity;
 	}
@@ -239,9 +239,9 @@ namespace Medusa
 		geometryPass.updateEntity(entity, camera);
 	}
 	
-	RenderingEntity DebugPass::addEntity(const std::string& mesh)
+	RenderingHandler DebugPass::addEntity(const std::string& mesh)
 	{
-		return RenderingPass::createEntity<RenderingEntity>(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING));
+		return RenderingPass::createEntity<RenderingHandler>(RenderingPass::getAssets()->getMesh(mesh, Medusa::WIRE_RENDERING));
 	}
 	
 	void DebugPass::setLineThickness(const float& thickness)

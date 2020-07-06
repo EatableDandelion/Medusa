@@ -9,7 +9,7 @@
 namespace Medusa
 {
 	
-	class Light : public RenderingEntity
+	class Light : public RenderingHandler
 	{
 		public:
 			Light(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color);

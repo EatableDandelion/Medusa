@@ -3,14 +3,13 @@
 
 namespace Medusa
 {
-	MedusaInterface::MedusaInterface(const int& windowWidth, const int& windowHeight):engine(windowWidth, windowHeight)
+	
+	
+	MedusaInterface::MedusaInterface():engine(), geometryPass(std::make_shared<GeometryPass>()), ambientLights(std::make_shared<AmbientLightPass>()),
+		directionalLights(std::make_shared<DirectionalLightPass>()),	
+		debugPass(std::make_shared<DebugPass>()),
+		hudPass(std::make_shared<HUDPass>())
 	{
-		geometryPass = std::make_shared<GeometryPass>();
-		ambientLights = std::make_shared<AmbientLightPass>();
-		directionalLights = std::make_shared<DirectionalLightPass>();	
-		debugPass = std::make_shared<DebugPass>();
-		hudPass = std::make_shared<HUDPass>();
-		
 		debugPass->addNext(hudPass);
 		directionalLights->addNext(debugPass);
 		ambientLights->addNext(directionalLights);
@@ -18,25 +17,10 @@ namespace Medusa
 		gui = std::make_shared<GUI>(hudPass);
 	}
 	
-	void MedusaInterface::load(const std::string& meshFolder, const std::string& textureFolder, const std::string& shaderFolder)
+	void MedusaInterface::load(const char* resourceDirectory)
 	{
-		assets = std::make_shared<Assets>(meshFolder, textureFolder, shaderFolder);
-		assets->loadMesh("plane.obj", -1);
-		assets->loadMesh("monkey.obj", 1);
-		assets->loadMesh("sphere.obj", 1);
-		assets->loadMesh("cube.obj", 1);
-		
-		assets->loadShader("GeometryPass");
-		assets->loadShader("DirectionalLight");
-		assets->loadShader("AmbientLight");
-		assets->loadShader("DebugDisplay");
-		assets->loadShader("HUD");
-		
-		assets->loadTexture("Warframe0000.jpg");
-		assets->loadTexture("Warframe0002.jpg");
-		assets->loadTexture("font.png");
-		assets->loadTexture("blockIso.png");
-		
+		assets = std::make_shared<Assets>();
+		assets->loadDirectory(resourceDirectory);
 		engine.init(geometryPass, ambientLights, assets);
 	}
 	
@@ -50,17 +34,27 @@ namespace Medusa
 		engine.draw(width, height);		
 	}
 	
-	RenderingEntity MedusaInterface::addWorldEntity(const std::string& mesh, const std::string& texture, const std::shared_ptr<Transform3> transform)
+	RenderingHandler MedusaInterface::newWorldEntity(const std::string& mesh, const std::string& texture)
 	{
 		return geometryPass->addEntity(mesh, texture);
 	}
 	
-	std::shared_ptr<GUI> MedusaInterface::getGUI() const
+	void MedusaInterface::removeWorldEntity(const RenderingHandler& entity)
 	{
-		return gui;
+		geometryPass->removeEntity<RenderingHandler>(entity);
 	}
 	
-	RenderingEntity MedusaInterface::addDebugEntity(const Shape& shape, std::shared_ptr<Transform3> transform)
+	DirectionalLight MedusaInterface::newDirectionalLight(const float& intensity, const float& r, const float& g, const float& b, const float& directionX, const float& directionY, const float& directionZ)
+	{
+		return directionalLights->addEntity(intensity, Circe::Vec3(r,g,b), Circe::Vec3(directionX, directionY, directionZ));
+	}
+	
+	AmbientLight MedusaInterface::newAmbientLight(const float& intensity, const float& r, const float& g, const float& b)
+	{
+		return ambientLights->addEntity(intensity, Circe::Vec3(r,g,b));
+	}		
+	
+	RenderingHandler MedusaInterface::newDebugEntity(const Shape& shape)
 	{
 		std::string meshFile;
 		if(shape == Shape::TRIANGLE)
@@ -82,8 +76,39 @@ namespace Medusa
 		return debugPass->addEntity(meshFile);
 	}
 	
+	void MedusaInterface::removeDebugEntity(const RenderingHandler& entity)
+	{
+		debugPass->removeEntity<RenderingHandler>(entity);
+	}
+	
 	void MedusaInterface::setDebugLineThickness(const float& thickness)
 	{
 		debugPass->setLineThickness(thickness);
+	}
+	
+	Camera MedusaInterface::getCamera()
+	{
+		return engine.getCamera();
+	}
+	
+	Label MedusaInterface::newLabel(const std::string& text, const float& posX, const float& posY, const float& size)
+	{
+		return gui->addLabel(text, posX, posY, size);
+	}
+			
+	Panel MedusaInterface::newPanel(const std::string& texture, const float& posX, const float& posY, const float& sizeX, const float& sizeY)
+	{
+		return gui->addPanel(texture, Circe::Vec2(posX, posY), Circe::Vec2(sizeX, sizeY));
+	}
+	
+	
+	Button MedusaInterface::newButton(const std::string& texture, const float& posX, const float& posY, const float& sizeX, const float& sizeY, const std::function<void(void)>& action)
+	{
+		return gui->addButton(texture, Circe::Vec2(posX, posY), Circe::Vec2(sizeX, sizeY), action);
+	}
+	
+	void MedusaInterface::listenTo(Mouse& mouse)
+	{
+		mouse.addListener(gui);
 	}
 }

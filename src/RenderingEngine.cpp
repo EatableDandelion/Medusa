@@ -5,9 +5,8 @@ namespace Medusa
 {
 	using namespace Circe;
 	using namespace std;
-	
 
-	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight):framebuffer(windowWidth, windowHeight), camera(2.0f, 2.0f)
+	RenderingEngine::RenderingEngine(const int& windowWidth, const int& windowHeight):framebuffer(windowWidth, windowHeight), camera(2.0f, 2.0f), windowWidth(windowWidth), windowHeight(windowHeight)
 	{}
 	
 	RenderingEngine::~RenderingEngine()
@@ -24,7 +23,13 @@ namespace Medusa
 	}
 	
 	void RenderingEngine::draw(const int& width, const int& height)
-	{		
+	{
+		if(width != windowWidth || height!= windowHeight)
+		{
+			framebuffer.reset(width, height);
+			windowWidth = width;
+			windowHeight = height;
+		}
 		camera.update(width, height);
 		
 		/** Geometry pass */

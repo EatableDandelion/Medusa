@@ -4,11 +4,11 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <memory>
+#include <Circe/MathObj.h>
 #include "RenderingEntity.h"
 #include "Resource.h"
 #include "Assets.h"
 #include "RenderingPass.h"
-#include <Circe/MathObj.h>
 #include "Input.h"
 #include "Lights.h"
 
@@ -17,7 +17,8 @@ namespace Medusa
 	class RenderingEngine
 	{
 		public:
-			RenderingEngine(const int& windowWidth, const int& windowHeight);
+	
+			RenderingEngine(const int& windowWidth = 600, const int& windowHeight = 600);
 			
 			~RenderingEngine();
 			
@@ -32,5 +33,7 @@ namespace Medusa
 			FrameBuffer framebuffer;
 			std::shared_ptr<RenderingPass> geometryPass;
 			std::shared_ptr<RenderingPass> postProcessPass;
+			int windowWidth;
+			int windowHeight;
 	};
 }

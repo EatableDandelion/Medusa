@@ -2,7 +2,7 @@
 
 namespace Medusa
 {		
-	Light::Light(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color):RenderingEntity(data), color(color)
+	Light::Light(const std::shared_ptr<EntityData> data, const float& intensity, const Circe::Vec3& color):RenderingHandler(data), color(color)
 	{
 		setColor(color);
 		setIntensity(intensity);		
@@ -12,7 +12,7 @@ namespace Medusa
 	{
 		Circe::normalize(color);
 		color *= intensity;
-		RenderingEntity::setUniform<Circe::Vec3>("lightColor", color);
+		RenderingHandler::setUniform<Circe::Vec3>("lightColor", color);
 	}
 			
 	void Light::setColor(const Circe::Vec3& newColor)
@@ -21,7 +21,7 @@ namespace Medusa
 		color = newColor;
 		Circe::normalize(color);
 		color *= intensity;
-		RenderingEntity::setUniform<Circe::Vec3>("lightColor", color);	
+		RenderingHandler::setUniform<Circe::Vec3>("lightColor", color);	
 	}
 	
 	
@@ -34,7 +34,7 @@ namespace Medusa
 	
 	void DirectionalLight::setDirection(const Circe::Vec3& direction)
 	{
-		RenderingEntity::setUniform<Circe::Vec3>("lightDirection", direction);
+		RenderingHandler::setUniform<Circe::Vec3>("lightDirection", direction);
 	}
 	
 	

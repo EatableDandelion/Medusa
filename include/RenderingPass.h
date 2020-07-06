@@ -63,26 +63,6 @@ namespace Medusa
 			
 	};
 	
-	/*class IRenderingPass
-	{	
-		public:
-			virtual ~IRenderingPass() = default;
-			
-			//void renderAll(const Camera& camera);
-			virtual void render(const Camera& camera) = 0;
-			
-			//void init(const std::shared_ptr<Assets>& assets);
-			virtual void initAssets(const std::shared_ptr<Assets>& assets) = 0;
-			
-			//void addNext(const std::shared_ptr<IRenderingPass> nextPass);
-			
-			//void setActive(const bool& isActive);
-			
-		private:
-			//std::weak_ptr<IRenderingPass> m_next;
-			//bool active = true;
-	};*/
-	
 	class RenderingPass
 	{
 		public:
@@ -120,7 +100,7 @@ namespace Medusa
 			
 		private:
 			Shader m_shader;
-			RenderingCollection<EntityData> entities;
+			EntityCollection<EntityData> entities;
 			std::string shaderName;
 			std::weak_ptr<RenderingPass> m_next;
 			bool active = true;
@@ -149,7 +129,7 @@ namespace Medusa
 			
 			virtual void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 			
-			RenderingEntity addEntity(const std::string& mesh, const  std::string& texture);	
+			RenderingHandler addEntity(const std::string& mesh, const  std::string& texture);	
 	};
 	
 	class DebugPass : public RenderingPass
@@ -159,7 +139,7 @@ namespace Medusa
 
 			virtual void updateEntity(std::shared_ptr<EntityData>& entity, const Camera& camera);
 			
-			RenderingEntity addEntity(const std::string& mesh);	
+			RenderingHandler addEntity(const std::string& mesh);	
 			
 			void setLineThickness(const float& thickness);
 			

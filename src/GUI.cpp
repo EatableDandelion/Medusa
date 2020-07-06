@@ -10,15 +10,15 @@ namespace Medusa
 		entity->updateModel();
 	}
 	
-	Panel::Panel(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingEntity(entityData)
+	Panel::Panel(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingHandler(entityData)
 	{
-		RenderingEntity::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
-		RenderingEntity::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
-		RenderingEntity::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
+		RenderingHandler::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
+		RenderingHandler::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
+		RenderingHandler::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
 		Transform3 transform;
 		transform.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, position(0), position(1), 0.0f));
 		transform.setFrameScale(Circe::Direction3(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
-		RenderingEntity::setTransform(transform);
+		RenderingHandler::setTransform(transform);
 	}
 	
 	/*Transform<3> Panel::getTransform() const
@@ -28,18 +28,18 @@ namespace Medusa
 	
 	void Panel::setColor(const Circe::Vec3& color)
 	{
-		RenderingEntity::setUniform<Circe::Vec3>("setColor", color);
+		RenderingHandler::setUniform<Circe::Vec3>("setColor", color);
 	}
 	
 	
-	Label::Label(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingEntity(entityData), color(1.0f, 1.0f, 1.0f)
+	Label::Label(const std::shared_ptr<EntityData> entityData, const Circe::Vec2& position, const Circe::Vec2& dimension):RenderingHandler(entityData), color(1.0f, 1.0f, 1.0f)
 	{
-		RenderingEntity::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
-		RenderingEntity::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
-		RenderingEntity::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
+		RenderingHandler::setUniform<Circe::Vec2>("textOffset", Circe::Vec2(0.0f, 0.0f));
+		RenderingHandler::setUniform<Circe::Vec2>("textSize", Circe::Vec2(1.0f, 1.0f));
+		RenderingHandler::setUniform<Circe::Vec3>("setColor", Circe::Vec3(1.0f, 1.0f, 1.0f));
 		transform.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, position(0)-dimension(0), position(1)-dimension(1), 0.0f));
 		transform.setFrameScale(Circe::Direction3(Circe::REF_FRAME::GLOBAL, dimension(0), dimension(1), 1.0f));
-		RenderingEntity::setTransform(transform);
+		RenderingHandler::setTransform(transform);
 		setVisibility(false);
 	}
 	
@@ -167,7 +167,7 @@ namespace Medusa
 		panel.setColor(color);
 	}
 	
-	GUI::GUI(const std::shared_ptr<HUDPass>& hudPass):hudPass(hudPass)
+	GUI::GUI(const std::shared_ptr<HUDPass>& hudPass):hudPass(hudPass), font("font.png")
 	{}
 	
 	Panel GUI::addPanel(const std::string& texture, const Circe::Vec2& position, const Circe::Vec2& dimension)

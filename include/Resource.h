@@ -30,7 +30,7 @@ namespace Medusa
 	{
 	public:	
 		template<typename... RLArgs> 
-		ResourceManager(const string& folderLocation, RLArgs&&... args):folderLocation(folderLocation), resourceLoader(std::make_shared<RLoader>(std::forward<RLArgs>(args)...))
+		ResourceManager(RLArgs&&... args):resourceLoader(std::make_shared<RLoader>(std::forward<RLArgs>(args)...))
 		{}
 		
 		~ResourceManager()
@@ -39,7 +39,7 @@ namespace Medusa
 		}
 		
 		template<typename... ResourceArgs>
-		void load(const string& name, ResourceArgs&&... args)
+		void load(const std::string& folderLocation, const string& name, ResourceArgs&&... args)
 		{
 			shared_ptr<R> resourcePtr = make_shared<R>(std::forward<ResourceArgs>(args)...);
 			resourceLoader->load(folderLocation, name, *resourcePtr);
@@ -73,7 +73,6 @@ namespace Medusa
 	private:
 		std::shared_ptr<RLoader> resourceLoader;
 		map<size_t, std::shared_ptr<R>> resources; //The key is the ID of the resource
-		string folderLocation;
 		
 		void unloadResource(const size_t& key)
 		{

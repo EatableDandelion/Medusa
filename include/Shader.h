@@ -6,8 +6,8 @@
 #include <Circe/Circe.h>
 #include <memory>
 #include <unordered_map>
-#include <Mesh.h>
-#include <Texture.h>
+#include "Mesh.h"
+#include "Texture.h"
 #include <variant>
 
 namespace Medusa
