@@ -4,10 +4,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
-#include "TestECS.h"
-//#include "Window.h"
 #include "Medusa.h"
-#include "World.h"
 
 
 using namespace Medusa;
@@ -23,18 +20,18 @@ int main(void)
 	*/
 	
 	CIRCE_INITPROFILER;
-	
+	std::cout << "fds" << std::endl;
 	high_resolution_clock::time_point t0, t1, t2;
 	t0 = high_resolution_clock::now();
-	
 	
 	GLFWWindow window(600, 400, "Test");
 	window.setCursorVisible(true);
 	
-	MedusaInterface medusa;//window.getWidth(), window.getHeight()
+	//World world;
+	
+	MedusaInterface medusa;
 	medusa.load("../../Resource/");
 	
-	//window.getMouse().addListener(medusa.getGUI());
 	medusa.listenTo(window.getMouse());
 
 	Circe::Transform3 transform1, transform2, transform3, transform4, transform5;
@@ -42,8 +39,6 @@ int main(void)
 	transform2.setFrameRotation(Circe::Vec<3>(-1,0,0), Circe::Vec<3>(0,1,0));
 	
 	
-	//Camera cam = engine.getCamera();
-
 	medusa.newDirectionalLight(0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.8f, 1.0f);
 	medusa.newAmbientLight(0.1f, 1.0f, 1.0f, 1.0f);
 	RenderingHandler entity1 = medusa.newWorldEntity("plane.obj", "Warframe0000.jpg");
@@ -51,23 +46,12 @@ int main(void)
 	RenderingHandler entity3 = medusa.newDebugEntity(Shape::SQUARE);
 	RenderingHandler entity4 = medusa.newDebugEntity(Shape::HEXAGON);
 	
-	//std::shared_ptr<GUI> gui = medusa.getGUI();
 	Label label = medusa.newLabel("Test", -0.8f, 0.9f, 0.05f);
 	label.setText("Test");
 	label.setTextColor(Circe::Vec3(1.0f, 0.8f, 0.7f));
 	
 	Button button = medusa.newButton("blank.png", 0.8f, 0.8f, 0.2f, 0.2f, [](){std::cout << "Button Pressed" << std::endl;});
 	button.setBackgroundColor(Circe::Vec3(0.5f, 0.7f, 0.9f));
-	
-	/*
-	window.getKeyboard().addListener(KEYS::KEY_E, [&messenger](bool oldValue, bool newValue){messenger->publish(Event("mouseclick"));});
-	window.getKeyboard().addListener(KEYS::KEY_A, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(-0.1f, 0.0f, 0.0f);}});
-	window.getKeyboard().addListener(KEYS::KEY_D, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.1f, 0.0f, 0.0f);}});
-	window.getKeyboard().addListener(KEYS::KEY_S, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, -0.1f);}});
-	window.getKeyboard().addListener(KEYS::KEY_W, [&cam](bool oldValue, bool newValue){if(oldValue == 0 && newValue==1){cam.translate(0.0f, 0.0f, 0.1f);}});*/
-	
-	/*EntityLoader test;
-	test.load("../../Resource/Model/", "monkey.mod");*/
 	
 	
 	transform1.translate(Circe::Direction3(Circe::REF_FRAME::GLOBAL, 0.0f, 0.0f, 6.0f));
@@ -105,7 +89,7 @@ int main(void)
 			{CIRCE_PROFILEBLOCK;		
 				double execTime = (duration_cast<duration<double>>(high_resolution_clock::now() - t0)).count();
 				std::cout << "\r" << "Execution time: " << execTime << " s           " << std::flush;
-				label.setText(std::to_string(execTime));
+				//label.setText(std::to_string(execTime));
 			}	
 				
 			{CIRCE_PROFILEBLOCK;

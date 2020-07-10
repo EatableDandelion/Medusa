@@ -199,40 +199,6 @@ namespace Medusa
 		glDeleteFramebuffers(1, &fbo);
 	}
 	
-	void FrameBuffer::reset(const int& width, const int& height)
-	{
-		glDeleteFramebuffers(1, &fbo);
-		glGenFramebuffers(1, &fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		
-		//Setting up the targets
-		
-		textureManager.load("", "diffuse0", width, height);
-		textureManager.load("", "normalMap", width, height);
-		
-		textures.push_back(textureManager.getResource("diffuse0", 0));
-		textures.push_back(textureManager.getResource("normalMap", 1));
-
-		unsigned int att[textures.size()] =  {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-		glDrawBuffers(textures.size(), att);
-		
-		
-		//Setting up the depth target
-		glGenRenderbuffers(1, &depthTargetId);
-		glBindRenderbuffer(GL_RENDERBUFFER, depthTargetId);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthTargetId);
-		
-		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		{
-			CIRCE_ERROR("Could not create render buffer.");
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		CIRCE_INFO("FrameBuffer initialized.");
-	}
-	
 	void FrameBuffer::bindForWrite()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);

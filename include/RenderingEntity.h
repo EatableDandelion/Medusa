@@ -3,11 +3,11 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "ECS.h"
 #include <Circe/Circe.h>
 #include <unordered_map>
 #include <vector>
 #include <iterator>
-#include "World.h"
 
 namespace Medusa
 {
@@ -49,11 +49,11 @@ namespace Medusa
 			std::shared_ptr<Material> getMaterial() const;
 
 			void setVisibility(const bool& visibility);
-
+			
 		private:
 			Mesh m_mesh;
 			shared_ptr<Material> material;			
-			bool visible;			
+			bool visible;
 			
 	};
 	
@@ -86,6 +86,8 @@ namespace Medusa
 			void setVisibility(const bool& visibility);
 			
 			int getId() const;
+			
+			//void updateModelMatrix(const Mat<4>& modelMatrix);
 			
 			void setTransform(const Transform3& transform);
 			

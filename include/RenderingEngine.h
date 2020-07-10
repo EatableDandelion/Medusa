@@ -18,7 +18,7 @@ namespace Medusa
 	{
 		public:
 	
-			RenderingEngine(const int& windowWidth = 600, const int& windowHeight = 600);
+			RenderingEngine(const int& windowWidth, const int& windowHeight);
 			
 			~RenderingEngine();
 			
@@ -33,7 +33,5 @@ namespace Medusa
 			FrameBuffer framebuffer;
 			std::shared_ptr<RenderingPass> geometryPass;
 			std::shared_ptr<RenderingPass> postProcessPass;
-			int windowWidth;
-			int windowHeight;
 	};
 }

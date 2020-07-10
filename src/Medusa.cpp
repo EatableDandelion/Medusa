@@ -5,7 +5,7 @@ namespace Medusa
 {
 	
 	
-	MedusaInterface::MedusaInterface():engine(), geometryPass(std::make_shared<GeometryPass>()), ambientLights(std::make_shared<AmbientLightPass>()),
+	MedusaInterface::MedusaInterface():engine(600,400), geometryPass(std::make_shared<GeometryPass>()), ambientLights(std::make_shared<AmbientLightPass>()),
 		directionalLights(std::make_shared<DirectionalLightPass>()),	
 		debugPass(std::make_shared<DebugPass>()),
 		hudPass(std::make_shared<HUDPass>())

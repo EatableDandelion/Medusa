@@ -18,8 +18,9 @@ namespace Medusa
 	{
 		
 	}*/
-	
-	EntityData::EntityData(const Mesh& mesh): Entity(), m_mesh(mesh), visible(true)
+	//int Entity::allid=0;
+
+	EntityData::EntityData(const Mesh& mesh):Entity(), m_mesh(mesh), visible(true)
 	{
 		material = std::make_shared<Material>();
 	}
@@ -59,14 +60,64 @@ namespace Medusa
 	{
 		visible = visibility;
 	}
-	 
+	/*
+	int EntityData::getId() const
+	{
+		return id;
+	}
+	
+	void EntityData::updateModelMatrix(const Mat<4>& modelMatrix)
+	{
+		model = modelMatrix;
+	}*/
+	/*
+	void EntityData::setTransform(const Transform3& transform)
+	{
+		m_transform = transform;
+	}
+	
+	Direction3 EntityData::getSize() const
+	{
+		return m_transform.getFrameScale();
+	}
+	
+	void EntityData::setSize(const Vec3& size)
+	{
+		m_transform.setFrameScale(size(0),size(1),size(2));
+	}
+	
+	Position3 EntityData::getPosition() const
+	{
+		return m_transform.getFramePosition();
+	}
+	
+	void EntityData::setPosition(const Vec3& position)
+	{
+		m_transform.setFramePosition(position(0),position(1),position(2));
+	}
+	
+	void EntityData::setRotation(const Vec3& leftAxis, const Vec3& fwdAxis)
+	{
+		m_transform.setFrameRotation(leftAxis, fwdAxis);
+	}
+	
+	void EntityData::attachTo(const std::shared_ptr<Entity>& parentEntity)
+	{
+		parent = parentEntity;
+	}
+	 */
 	
 	RenderingHandler::RenderingHandler(const std::shared_ptr<EntityData> entityData):entity(entityData)
 	{}
 	
 	RenderingHandler::RenderingHandler(const RenderingHandler& other):entity(other.entity)
 	{}
-			
+	
+	/*void RenderingHandler::updateModelMatrix(const Mat<4>& modelMatrix)
+	{
+		entity->updateModelMatrix(modelMatrix);
+	}*/
+		
 	void RenderingHandler::draw(const int& culling)
 	{
 		entity->draw(culling);
